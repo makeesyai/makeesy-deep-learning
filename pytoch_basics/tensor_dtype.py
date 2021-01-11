@@ -17,13 +17,27 @@ import torch
 # print(tensor)
 # print(tensor.type())
 
-# 32-bit (Float: float32, float-> FloatTensor + Int: int32, int-> IntTensor)
 # 64-bit (Float: float64, double-> DoubleTensor + Int: int64, long-> LongTensor)
+# 32-bit (Float: float32, float-> FloatTensor + Int: int32, int-> IntTensor)
 # 16-bit (Float: float16, half-> HalfTensor + Int, int16, short-> ShortTensor)
 # 8-bit (Signed: int8-> ByteTensor + Unsigned: uint8-> CharTensor)
 
-# By default, tensor's data type is automatically assigned
+# By default, tensor's data type is automatically assigned (the default types: float32 and int64)
 # but in case we need to force it, we can use 'dtype' parameter
-# tensor = torch.tensor([1, 2, 3, 4.], dtype=torch.float16)
+# tensor = torch.tensor([1.0, 2.0, 3.0, 4.0], dtype=torch.float16)
 # print(tensor)
 # print(tensor.type())
+
+# Changing the dtype of a tensor after creation
+tensor = torch.randn(5, 3)
+print(tensor)
+print(tensor.type())
+tensor = tensor.type(torch.HalfTensor)
+tensor = tensor.type('torch.HalfTensor')  # also valid
+print(tensor)
+print(tensor.type())
+
+tensor = tensor.double()
+print(tensor)
+print(tensor.type())
+
