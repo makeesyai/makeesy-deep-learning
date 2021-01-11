@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-nd_arr = np.array([[1, 2, 3], [1, 2, 3]], dtype=np.int16)
+nd_arr = np.array([1, 2, 3], dtype=np.int16)
 print(nd_arr)
 print(nd_arr.dtype)
 
@@ -18,7 +18,7 @@ print(nd_arr.dtype)
 # Modifications to the tensor will be reflected in the numpy array and vice versa.
 
 # Convert torch tensor to numpy
-# tensor = torch.tensor([[1, 2, 3], [1, 2, 3]])
+# nd_arr = np.array([1, 2, 3], dtype=np.int16)
 # print(tensor)
 # print(tensor.type())
 # nd_arr = tensor.numpy()
@@ -31,13 +31,13 @@ print(nd_arr.dtype)
 # Modifications to the tensor will be reflected in the numpy array and vice versa.
 
 # Another way?
-tensor = torch.tensor([[1, 2, 3], [1, 2, 3]])
-nd_arr = np.array(tensor)  # creates a new array
-print(nd_arr)
-print(nd_arr.dtype)
-tensor[(0, 0)] = 444  # Update tensor
-print(nd_arr)
-print(nd_arr.dtype)
+# tensor = torch.tensor([1, 2, 3])
+# nd_arr = np.array(tensor)  # creates a new array
+# print(nd_arr)
+# print(nd_arr.dtype)
+# tensor[(0, 0)] = 444  # Update tensor
+# print(nd_arr)
+# print(nd_arr.dtype)
 
 # Why not this?
 # nd_arr = np.array([[1, 2, 3], [1, 2, 3]], dtype=np.int16)
