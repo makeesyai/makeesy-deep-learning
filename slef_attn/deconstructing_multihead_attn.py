@@ -23,22 +23,34 @@ x = np.array([
 
 print(x)
 w_key = np.array([
-  [0, 0, 1],
-  [1, 1, 0],
-  [0, 1, 0],
-  [1, 1, 0]
+    [[0, 0, 1],
+     [1, 1, 0],
+     [0, 1, 0],
+     [1, 1, 0]],
+    [[0, 0, 1],
+     [1, 1, 0],
+     [0, 1, 0],
+     [1, 1, 0]]
 ])
 w_query = np.array([
-  [1, 0, 1],
-  [1, 0, 0],
-  [0, 0, 1],
-  [0, 1, 1]
+    [[1, 0, 1],
+     [1, 0, 0],
+     [0, 0, 1],
+     [0, 1, 1]],
+    [[1, 0, 1],
+     [1, 0, 0],
+     [0, 0, 1],
+     [0, 1, 1]],
 ])
 w_value = np.array([
-  [0, 2, 0],
-  [0, 3, 0],
-  [1, 0, 3],
-  [1, 1, 0]
+    [[0, 2, 0],
+     [0, 3, 0],
+     [1, 0, 3],
+     [1, 1, 0]],
+    [[0, 2, 0],
+     [0, 3, 0],
+     [1, 0, 3],
+     [1, 1, 0]],
 ])
 key = []
 query = []
@@ -58,23 +70,39 @@ for i in range(len(x)):
 query = np.stack(query)
 key = np.stack(key)
 value = np.stack(value)
+print(query)
+print(key)
+print(value)
 
 final_out = []
 for i in range(len(x)):
     this_query = query[i]
+    # print(this_query)
     relevance = []
     # Compute this_query relevance to all the Keys
-    for j in range(len(key)):
-        rel_key_j = this_query @ key[j]
+    # print(key.shape)
+    for j in range(key.shape[1]):
+        # print(j)
+        # print(key[j])
+        # print(this_query.T)
+        rel_key_j = key[j] @ this_query.T
+        # print(rel_key_j)
+        # exit()
         relevance.append(rel_key_j)
 
-    relevance = np.array(relevance)
+    relevance = np.stack(relevance)
     # Apply softmax to get probability scores of relevance
     relevance_scores = softmax(relevance, axis=-1)
+    # print(relevance_scores)
+    # print(relevance)
+    # exit()
     # relevance_scores = relevance_scores.round(decimals=1)
     out = 0
     for k in range(len(relevance)):
-        out += value[k] * relevance_scores[k]
+        print(value[k])
+        print(relevance_scores[k])
+        # exit()
+        out += relevance_scores[k] * value[k]
     final_out.append(out.round(decimals=1))
 print(np.stack(final_out))
 
