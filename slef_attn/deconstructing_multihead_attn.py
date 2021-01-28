@@ -16,41 +16,32 @@ https://www.python.org/dev/peps/pep-0465/#semantics
 
 """
 x = np.array([
-  [1, 0, 1, 0],  # Input 1
-  [0, 2, 0, 2],  # Input 2
-  [1, 1, 1, 1]   # Input 3
+  [1, 0, 1, 0],   # Input 1
+  [0, 2, 0, 2],   # Input 2
+  [1, 1, 1, 1],   # Input 3
+  [1, 2, 1, 2],   # Input 4
+  [2, 2, 2, 2],   # Input 5
  ])
+seql, emb = x.shape
 
-print(x)
-w_key = np.array([
-    [[0, 0, 1],
-     [1, 1, 0],
-     [0, 1, 0],
-     [1, 1, 0]],
-    [[0, 0, 1],
-     [1, 1, 0],
-     [0, 1, 0],
-     [1, 1, 0]]
-])
 w_query = np.array([
-    [[1, 0, 1],
-     [1, 0, 0],
-     [0, 0, 1],
-     [0, 1, 1]],
-    [[1, 0, 1],
-     [1, 0, 0],
-     [0, 0, 1],
-     [0, 1, 1]],
+    [1, 0, 1, 1, 0, 1],
+    [1, 0, 0, 1, 0, 0],
+    [0, 0, 1, 0, 0, 1],
+    [0, 1, 1, 0, 1, 1]
+])
+
+w_key = np.array([
+    [0, 0, 1, 0, 0, 1],
+    [1, 1, 0, 1, 1, 0],
+    [0, 1, 0, 0, 1, 0],
+    [1, 1, 0, 1, 1, 0]
 ])
 w_value = np.array([
-    [[0, 2, 0],
-     [0, 3, 0],
-     [1, 0, 3],
-     [1, 1, 0]],
-    [[0, 2, 0],
-     [0, 3, 0],
-     [1, 0, 3],
-     [1, 1, 0]],
+    [0, 2, 0, 0, 2, 0],
+    [0, 3, 0, 0, 3, 0],
+    [1, 0, 3, 1, 0, 3],
+    [1, 1, 0, 1, 1, 0]
 ])
 key = []
 query = []
@@ -66,46 +57,29 @@ for i in range(len(x)):
     key.append(key_i)
     value.append(value_i)
 
+# print(query)
+# print(key)
+# print(value)
+# exit()
+heads = 2
+head_dim = 3
+
 # Convert list into numpy array
-query = np.stack(query)
-key = np.stack(key)
-value = np.stack(value)
-print(query)
-print(key)
-print(value)
+query = np.stack(query).reshape((seql, heads, head_dim))
+key = np.stack(key).reshape((seql, heads, head_dim))
+value = np.stack(value).reshape((seql, heads, head_dim))
+query = np.transpose(query, (1, 0, 2))
+key = np.transpose(key, (1, 0, 2))
+value = np.transpose(value, (1, 0, 2))
 
-final_out = []
-for i in range(len(x)):
-    this_query = query[i]
-    # print(this_query)
-    relevance = []
-    # Compute this_query relevance to all the Keys
-    # print(key.shape)
-    for j in range(key.shape[1]):
-        # print(j)
-        # print(key[j])
-        # print(this_query.T)
-        rel_key_j = key[j] @ this_query.T
-        # print(rel_key_j)
-        # exit()
-        relevance.append(rel_key_j)
+# Transpose key again to get relevance score per head
+key = np.transpose(key, (0, 2, 1))
 
-    relevance = np.stack(relevance)
-    # Apply softmax to get probability scores of relevance
-    relevance_scores = softmax(relevance, axis=-1)
-    # print(relevance_scores)
-    # print(relevance)
-    # exit()
-    # relevance_scores = relevance_scores.round(decimals=1)
-    out = 0
-    for k in range(len(relevance)):
-        print(value[k])
-        print(relevance_scores[k])
-        # exit()
-        out += relevance_scores[k] * value[k]
-    final_out.append(out.round(decimals=1))
-print(np.stack(final_out))
-
-# For Multi-Head, repeat the above process for n-separate w_query, w_key, and w_value,
-# that will be n multi-head attn (In an optimized implementation, all the heads are packed
-# in a single matrix for query, key, and value)
+# Generate the relevance score
+relevance = query @ key
+# Apply softmax to get probability scores of relevance
+relevance_scores = softmax(relevance, axis=-1)
+print(relevance_scores.round(decimals=2))
+exit()
+out = relevance_scores @ value
+print(out)

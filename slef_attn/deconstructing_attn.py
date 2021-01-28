@@ -16,12 +16,13 @@ https://www.python.org/dev/peps/pep-0465/#semantics
 
 """
 x = np.array([
-  [1, 0, 1, 0],  # Input 1
-  [0, 2, 0, 2],  # Input 2
-  [1, 1, 1, 1]   # Input 3
+  [1, 0, 1, 0],   # Input 1
+  [0, 2, 0, 2],   # Input 2
+  [1, 1, 1, 1],   # Input 3
+  [1, 2, 1, 2],   # Input 4
+  [2, 2, 2, 2],   # Input 5
  ])
 
-print(x)
 w_key = np.array([
   [0, 0, 1],
   [1, 1, 0],
@@ -58,7 +59,10 @@ for i in range(len(x)):
 query = np.stack(query)
 key = np.stack(key)
 value = np.stack(value)
-
+print(query)
+print(key)
+print(value)
+exit()
 final_out = []
 for i in range(len(x)):
     this_query = query[i]
@@ -71,6 +75,7 @@ for i in range(len(x)):
     relevance = np.array(relevance)
     # Apply softmax to get probability scores of relevance
     relevance_scores = softmax(relevance, axis=-1)
+
     # relevance_scores = relevance_scores.round(decimals=1)
     out = 0
     for k in range(len(relevance)):
