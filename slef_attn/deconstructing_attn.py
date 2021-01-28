@@ -59,29 +59,32 @@ for i in range(len(x)):
 query = np.stack(query)
 key = np.stack(key)
 value = np.stack(value)
-print(query)
-print(key)
-print(value)
-exit()
-final_out = []
+# print(query)
+# print(key)
+# print(value)
+# exit()
+this_query_contextual = []
 for i in range(len(x)):
     this_query = query[i]
     relevance = []
-    # Compute this_query relevance to all the Keys
+    # Compute this_query relevance to all the Keys (keys-row)
     for j in range(len(key)):
+        # Calculate inner product in between this_query and each row of the key matrix
         rel_key_j = this_query @ key[j]
         relevance.append(rel_key_j)
 
     relevance = np.array(relevance)
     # Apply softmax to get probability scores of relevance
     relevance_scores = softmax(relevance, axis=-1)
-
     # relevance_scores = relevance_scores.round(decimals=1)
     out = 0
+    # Each values-row is multiplied with relevance score and added point-wise
     for k in range(len(relevance)):
+        # Here value[k] :is vector (of head_dim), and relevance_scores[k]: is a scalar score
         out += value[k] * relevance_scores[k]
-    final_out.append(out.round(decimals=1))
-print(np.stack(final_out))
+    this_query_contextual.append(out.round(decimals=1))
+
+print(np.stack(this_query_contextual))
 
 # For Multi-Head, repeat the above process for n-separate w_query, w_key, and w_value,
 # that will be n multi-head attn (In an optimized implementation, all the heads are packed
