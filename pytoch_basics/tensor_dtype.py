@@ -1,4 +1,16 @@
+# Tensor:A tensor is a container which can house data in N dimensions, along with its linear operations,
+# though there is difference in what tensors technically are and what we refer to as tensors in practice.
+
+# Types: Float and Int
+# Precision
+# 64-bit (Float: float64, double-> DoubleTensor + Int: int64, long-> LongTensor)
+# 32-bit (Float: float32, float-> FloatTensor + Int: int32, int-> IntTensor)
+# 16-bit (Float: float16, half-> HalfTensor + Int, int16, short-> ShortTensor)
+# 8-bit (Signed: int8-> ByteTensor + Unsigned: uint8-> CharTensor)
+
 import torch
+# print(torch.finfo(torch.float16))
+# print(torch.iinfo(torch.int8))
 
 # torch.Tensor() == torch.FloatTensor() vs torch.tensor()
 # tensor = torch.Tensor()  # is OK
@@ -40,4 +52,3 @@ print(tensor.type())
 tensor = tensor.double()
 print(tensor)
 print(tensor.type())
-
