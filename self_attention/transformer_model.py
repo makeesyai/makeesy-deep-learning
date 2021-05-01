@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import TransformerDecoder, TransformerEncoder, Transformer, \
     TransformerDecoderLayer, TransformerEncoderLayer
+from torch.optim import Adam
 
 
 class SeqEncoder(nn.Module):
@@ -25,15 +26,68 @@ class MyTransformer(nn.Module):
                                        num_decoder_layers=1,
                                        num_encoder_layers=1,
                                        )
-
-    def forward(self, x):
-        tensor = self.transformer(x, x)
-        print(tensor.size())
+        self.generator = nn.Linear(dim_embeddings, tgt_vocab)
 
 
-x = torch.rand((12, 30, 128))
-print(x.size())
-# exit()
-# model = SeqEncoder()
-model = MyTransformer()
-model(x)
+    def forward(self, x, y):
+        tensor_x = self.src_embeddings(x)
+        tensor_y = self.tgt_embeddings(y)
+        tensor = self.transformer(tensor_x, tensor_y)
+        tensor = self.generator(tensor_x)
+        return tensor
+
+
+def token2idx(data, vcb):
+    data_idx = []
+    for sample in data:
+        sample_idx = [vcb.get(t, vcb.get('UNK')) for t in sample]
+        data_idx.append(sample_idx)
+    return data_idx
+
+
+def load_vocab(file_path):
+    word2idx = {'UNK': 0}
+    index = len(word2idx)
+    with open(file_path, encoding='utf8') as fin:
+        for line in fin:
+            word, freq = line.split('\t')
+            if word not in word2idx:
+                word2idx[word] = index
+                index += 1
+    return word2idx
+
+
+def load_data(file_path):
+    dada = []
+    with open(file_path, encoding='utf8') as fin:
+        for line in fin:
+            dada.append(line.split())
+    return dada
+
+
+src_vcb = load_vocab('../data/vocab_src.txt')
+tgt_vcb = load_vocab('../data/vocab_tgt.txt')
+# print(src_vcb)
+# print(tgt_vcb)
+
+src_data = load_data('../data/sources.txt')
+tgt_data = load_data('../data/targets.txt')
+
+src_data_idx = token2idx(src_data, src_vcb)
+tgt_data_idx = token2idx(tgt_data, src_vcb)
+# print(src_data_idx)
+# print(tgt_data_idx)
+
+model = MyTransformer(len(src_vcb), len(tgt_vcb))
+criterion = nn.CrossEntropyLoss()
+optimizer = Adam(model.parameters())
+
+for example_x, example_y in zip(src_data_idx, tgt_data_idx):
+    optimizer.zero_grad()
+    tensor_x = torch.LongTensor([example_x])
+    tensor_y = torch.LongTensor([example_y])
+    output = model(tensor_x, tensor_y)
+    loss = criterion(output.view(-1, len(tgt_vcb)), tensor_y.view(-1))
+    loss.backward()
+    optimizer.step()
+    print(loss.item())
