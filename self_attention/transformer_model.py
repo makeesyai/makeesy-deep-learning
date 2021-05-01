@@ -1,7 +1,6 @@
 import torch
 from torch import nn
-from torch.nn import TransformerDecoder, TransformerEncoder, Transformer, \
-    TransformerDecoderLayer, TransformerEncoderLayer
+from torch.nn import TransformerEncoderLayer, TransformerEncoder, Transformer
 from torch.optim import Adam
 
 
@@ -28,12 +27,11 @@ class MyTransformer(nn.Module):
                                        )
         self.generator = nn.Linear(dim_embeddings, tgt_vocab)
 
-
     def forward(self, x, y):
         tensor_x = self.src_embeddings(x)
         tensor_y = self.tgt_embeddings(y)
         tensor = self.transformer(tensor_x, tensor_y)
-        tensor = self.generator(tensor_x)
+        tensor = self.generator(tensor)
         return tensor
 
 
@@ -91,3 +89,5 @@ for example_x, example_y in zip(src_data_idx, tgt_data_idx):
     loss.backward()
     optimizer.step()
     print(loss.item())
+
+# for example_x, example_y in zip(src_data_idx, tgt_data_idx):
