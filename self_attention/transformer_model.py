@@ -114,13 +114,12 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
 def generate_batch(data_batch):
     src_batch, tgt_batch = [], []
 
-    for (de_item, en_item) in data_batch:
-        src_batch.append(torch.cat([torch.tensor([BOS_IDX]), de_item, torch.tensor([EOS_IDX])], dim=0))
-        tgt_batch.append(torch.cat([torch.tensor([BOS_IDX]), en_item, torch.tensor([EOS_IDX])], dim=0))
+    for (src_item, tgt_item) in data_batch:
+        src_batch.append(torch.cat([torch.tensor([BOS_IDX]), src_item, torch.tensor([EOS_IDX])], dim=0))
+        tgt_batch.append(torch.cat([torch.tensor([BOS_IDX]), tgt_item, torch.tensor([EOS_IDX])], dim=0))
 
     src_batch = pad_sequence(src_batch, padding_value=PAD_IDX)
     tgt_batch = pad_sequence(tgt_batch, padding_value=PAD_IDX)
-
     return src_batch, tgt_batch
 
 
@@ -134,7 +133,7 @@ BATCH_SIZE = 16
 train_data = load_data('../data/sources.txt',
                        '../data/targets.txt', src_vcb, tgt_vcb)
 
-train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
+train_iter = DataLoader(train_data, batch_size=2,
                         shuffle=True, collate_fn=generate_batch)
 
 model = MyTransformer(len(src_vcb), len(tgt_vcb))
