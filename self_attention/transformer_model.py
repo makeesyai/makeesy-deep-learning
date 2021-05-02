@@ -1,5 +1,7 @@
+import math
+
 import torch
-from torch import nn
+from torch import nn, Tensor
 from torch.nn import TransformerEncoderLayer, TransformerEncoder, Transformer
 from torch.optim import Adam
 
@@ -15,11 +17,30 @@ class SeqEncoder(nn.Module):
         print(tensor.size())
 
 
+class PositionalEncoding(nn.Module):
+    def __init__(self, emb_size: int, dropout, maxlen: int = 5000):
+        super(PositionalEncoding, self).__init__()
+        den = torch.exp(- torch.arange(0, emb_size, 2) * math.log(10000) / emb_size)
+        pos = torch.arange(0, maxlen).reshape(maxlen, 1)
+        pos_embedding = torch.zeros((maxlen, emb_size))
+        pos_embedding[:, 0::2] = torch.sin(pos * den)
+        pos_embedding[:, 1::2] = torch.cos(pos * den)
+        pos_embedding = pos_embedding.unsqueeze(-2)
+
+        self.dropout = nn.Dropout(dropout)
+        self.register_buffer('pos_embedding', pos_embedding)
+
+    def forward(self, token_embedding: Tensor):
+        return self.dropout(token_embedding +
+                            self.pos_embedding[:token_embedding.size(0),:])
+
+
 class MyTransformer(nn.Module):
     def __init__(self, src_vocab, tgt_vocab, dim_embeddings=128, n_heads=2, ff_dim=512):
         super(MyTransformer, self).__init__()
         self.src_embeddings = nn.Embedding(src_vocab, dim_embeddings)
         self.tgt_embeddings = nn.Embedding(tgt_vocab, dim_embeddings)
+        self.pe = PositionalEncoding(dim_embeddings, dropout=0.01)
         self.transformer = Transformer(dim_embeddings, n_heads,
                                        dim_feedforward=ff_dim,
                                        num_decoder_layers=1,
@@ -28,8 +49,8 @@ class MyTransformer(nn.Module):
         self.generator = nn.Linear(dim_embeddings, tgt_vocab)
 
     def forward(self, x, y):
-        tensor_x = self.src_embeddings(x)
-        tensor_y = self.tgt_embeddings(y)
+        tensor_x = self.pe(self.src_embeddings(x))
+        tensor_y = self.pe(self.tgt_embeddings(y))
         tensor = self.transformer(tensor_x, tensor_y)
         tensor = self.generator(tensor)
         return tensor
@@ -44,7 +65,7 @@ def token2idx(data, vcb):
 
 
 def load_vocab(file_path):
-    word2idx = {'UNK': 0}
+    word2idx = {'UNK': 0, '<s>': 1, '</s>': 2}
     index = len(word2idx)
     with open(file_path, encoding='utf8') as fin:
         for line in fin:
@@ -59,7 +80,7 @@ def load_data(file_path):
     dada = []
     with open(file_path, encoding='utf8') as fin:
         for line in fin:
-            dada.append(line.split())
+            dada.append(['<s>'] + line.split() + ['</s>'])
     return dada
 
 
@@ -79,15 +100,23 @@ tgt_data_idx = token2idx(tgt_data, src_vcb)
 model = MyTransformer(len(src_vcb), len(tgt_vcb))
 criterion = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters())
-
+count = 0
 for example_x, example_y in zip(src_data_idx, tgt_data_idx):
     optimizer.zero_grad()
-    tensor_x = torch.LongTensor([example_x])
-    tensor_y = torch.LongTensor([example_y])
-    output = model(tensor_x, tensor_y)
-    loss = criterion(output.view(-1, len(tgt_vcb)), tensor_y.view(-1))
+    example_y_input = example_y[:-1]
+    example_y_true = example_y[1:]
+    tensor_x = torch.LongTensor([example_x]).transpose(0, 1)
+    tensor_y_input = torch.LongTensor([example_y_input]).transpose(0, 1)
+    tensor_y_true = torch.LongTensor([example_y_true])
+    output = model(tensor_x, tensor_y_input)
+    if count > 0 and count % 10 == 0:
+        print(output.argmax(-1).view(-1).tolist())
+        print(example_y_true)
+    count += 1
+    loss = criterion(output.view(-1, len(tgt_vcb)), tensor_y_true.view(-1))
     loss.backward()
     optimizer.step()
     print(loss.item())
 
 # for example_x, example_y in zip(src_data_idx, tgt_data_idx):
+# TODO: Update the code to have separate module for encode and decode
