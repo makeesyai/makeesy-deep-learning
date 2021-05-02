@@ -136,6 +136,7 @@ for example_x, example_y in zip(src_data_idx, tgt_data_idx):
 
 count = 0
 with torch.no_grad():
+    model.eval()
     for example_x, example_y in zip(src_data_idx, tgt_data_idx):
         example_y_true = example_y[1:]
         tensor_x = torch.LongTensor([example_x])
@@ -143,13 +144,14 @@ with torch.no_grad():
         ys = torch.ones(1, 1).fill_(1).long()
         for i in range(100):
             out = model.decode(ys, memory)
-            prob = model.generator(out)
-            predictions = prob.argmax(-1)
-            next_word = predictions[-1].item()
+            out = out.transpose(0, 1)
+            prob = model.generator(out[:, -1])
+            _, next_word = torch.max(prob, dim=1)
+            next_word = next_word.item()
             ys = torch.cat([ys,
                             torch.ones(1, 1).fill_(next_word)], dim=0).long()
-            if next_word == 2:
-                break
+            # if next_word == 2:
+            #     break
         print(ys.transpose(0, 1))
         count += 1
         if count == 10:
