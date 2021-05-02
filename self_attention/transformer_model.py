@@ -148,7 +148,7 @@ model = MyTransformer(len(src_vcb), len(tgt_vcb))
 criterion = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters())
 
-train = False
+train = True
 if train:
     count = 0
     for idx, (src, tgt) in enumerate(train_iter):
