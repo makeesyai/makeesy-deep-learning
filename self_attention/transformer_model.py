@@ -38,22 +38,37 @@ class PositionalEncoding(nn.Module):
 class MyTransformer(nn.Module):
     def __init__(self, src_vocab, tgt_vocab, dim_embeddings=128, n_heads=2, ff_dim=512):
         super(MyTransformer, self).__init__()
+
         self.src_embeddings = nn.Embedding(src_vocab, dim_embeddings)
         self.tgt_embeddings = nn.Embedding(tgt_vocab, dim_embeddings)
         self.pe = PositionalEncoding(dim_embeddings, dropout=0.01)
-        self.transformer = Transformer(dim_embeddings, n_heads,
-                                       dim_feedforward=ff_dim,
-                                       num_decoder_layers=1,
-                                       num_encoder_layers=1,
-                                       )
+
+        # Encoder model
+        encoder_norm = nn.LayerNorm(dim_embeddings)
+        enc_layer = nn.TransformerEncoderLayer(dim_embeddings, n_heads, ff_dim)
+        self.encoder = nn.TransformerEncoder(enc_layer, num_layers=1, norm=encoder_norm)
+
+        # Decoder model
+        dec_layer = nn.TransformerDecoderLayer(dim_embeddings, n_heads, ff_dim)
+        decoder_norm = nn.LayerNorm(dim_embeddings)
+        self.decoder = nn.TransformerDecoder(dec_layer, num_layers=1, norm=decoder_norm)
+
+        # Generator
         self.generator = nn.Linear(dim_embeddings, tgt_vocab)
 
-    def forward(self, x, y):
-        tensor_x = self.pe(self.src_embeddings(x))
+    def encode(self, x):
+        memory = self.pe(self.src_embeddings(x))
+        return self.encoder(memory)
+
+    def decode(self, y, memory):
         tensor_y = self.pe(self.tgt_embeddings(y))
-        tensor = self.transformer(tensor_x, tensor_y)
-        tensor = self.generator(tensor)
-        return tensor
+        return self.decoder(tensor_y, memory)
+
+    def forward(self, x, y):
+        memory = self.encode(x)
+        tensor = self.decode(y, memory)
+        logits = self.generator(tensor)
+        return logits
 
 
 def token2idx(data, vcb):
@@ -100,12 +115,13 @@ tgt_data_idx = token2idx(tgt_data, src_vcb)
 model = MyTransformer(len(src_vcb), len(tgt_vcb))
 criterion = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters())
+
 count = 0
 for example_x, example_y in zip(src_data_idx, tgt_data_idx):
     optimizer.zero_grad()
     example_y_input = example_y[:-1]
     example_y_true = example_y[1:]
-    tensor_x = torch.LongTensor([example_x]).transpose(0, 1)
+    tensor_x = torch.LongTensor([example_x])
     tensor_y_input = torch.LongTensor([example_y_input]).transpose(0, 1)
     tensor_y_true = torch.LongTensor([example_y_true])
     output = model(tensor_x, tensor_y_input)
@@ -118,5 +134,23 @@ for example_x, example_y in zip(src_data_idx, tgt_data_idx):
     optimizer.step()
     print(loss.item())
 
-# for example_x, example_y in zip(src_data_idx, tgt_data_idx):
-# TODO: Update the code to have separate module for encode and decode
+count = 0
+with torch.no_grad():
+    for example_x, example_y in zip(src_data_idx, tgt_data_idx):
+        example_y_true = example_y[1:]
+        tensor_x = torch.LongTensor([example_x])
+        memory = model.encode(tensor_x)
+        ys = torch.ones(1, 1).fill_(1).long()
+        for i in range(100):
+            out = model.decode(ys, memory)
+            prob = model.generator(out)
+            predictions = prob.argmax(-1)
+            next_word = predictions[-1].item()
+            ys = torch.cat([ys,
+                            torch.ones(1, 1).fill_(next_word)], dim=0).long()
+            if next_word == 2:
+                break
+        print(ys.transpose(0, 1))
+        count += 1
+        if count == 10:
+            exit()
