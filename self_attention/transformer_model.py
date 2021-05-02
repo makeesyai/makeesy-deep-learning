@@ -98,8 +98,11 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
     with open(file_src, encoding='utf8') as fin_src, \
             open(file_tgt, encoding='utf8') as fin_tgt:
         for line_src, line_tgt in zip(fin_src, fin_tgt):
-            sample_src = ['<s>'] + line_src.split() + ['</s>']
-            sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
+            sample_src = line_src.split()
+            sample_tgt = line_tgt.split()
+
+            # sample_src = ['<s>'] + line_src.split() + ['</s>']
+            # sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
 
             sample_src_idx = [vcb_src.get(t, vcb_src.get('UNK')) for t in sample_src]
             sample_tgt_idx = [vcb_src.get(t, vcb_tgt.get('UNK')) for t in sample_tgt]
@@ -133,48 +136,52 @@ BATCH_SIZE = 16
 train_data = load_data('../data/sources.txt',
                        '../data/targets.txt', src_vcb, tgt_vcb)
 
-train_iter = DataLoader(train_data, batch_size=2,
+train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                         shuffle=True, collate_fn=generate_batch)
+
+# for idx, (src, tgt) in enumerate(train_iter):
+#     print(src)
+#     print(tgt)
+#     exit()
 
 model = MyTransformer(len(src_vcb), len(tgt_vcb))
 criterion = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters())
 
 count = 0
-for idx, (src, tgt) in enumerate(train_data):
-    src = src.unsqueeze(0).transpose(0, 1)
-    tgt = tgt.unsqueeze(0).transpose(0, 1)
+for idx, (src, tgt) in enumerate(train_iter):
+    # src = src.unsqueeze(1)
+    # tgt = tgt.unsqueeze(1)
     tgt_input = tgt[:-1, :]
-    output = model(src, tgt_input)
+    logits = model(src, tgt_input)
     tgt_out = tgt[1:, :]
-    if count > 0 and count % 10 == 0:
-        print(output.argmax(-1).view(-1).tolist())
-        print(tgt_out.transpose(0, 1))
-    count += 1
+
+    # if count > 0 and count % 10 == 0:
+    #     print(logits.argmax(-1).view(-1).tolist())
+    #     print(tgt_out.transpose(0, 1))
+    # count += 1
 
     optimizer.zero_grad()
-    loss = criterion(output.view(-1, len(tgt_vcb)), tgt_out.view(-1))
+    loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
     loss.backward()
     optimizer.step()
     print(loss.item())
 
-# train_iter = DataLoader(train_data, batch_size=1,
-#                         shuffle=True, collate_fn=generate_batch)
+train_iter = DataLoader(train_data, batch_size=1,
+                        shuffle=True, collate_fn=generate_batch)
 count = 0
 with torch.no_grad():
     model.eval()
-    for idx, (src, tgt) in enumerate(train_data):
-        src = src.unsqueeze(0).transpose(0, 1)
-        tgt = tgt.unsqueeze(0).transpose(0, 1)
-
+    for idx, (src, tgt) in enumerate(train_iter):
+        # src = src.unsqueeze(1)
+        # tgt = tgt.unsqueeze(1)
         memory = model.encode(src)
-
         ys = torch.ones(1, 1).fill_(BOS_IDX).long()
         for i in range(100):
             out = model.decode(ys, memory)
             out = out.transpose(0, 1)
             prob = model.generator(out[:, -1])
-            _, next_word = torch.max(prob, dim=1)
+            _, next_word = torch.max(prob, dim=-1)
             next_word = next_word.item()
             ys = torch.cat([ys,
                             torch.ones(1, 1).fill_(next_word)], dim=0).long()
