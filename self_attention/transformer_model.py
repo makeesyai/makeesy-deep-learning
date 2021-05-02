@@ -167,7 +167,7 @@ if train:
             loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
             loss.backward()
             optimizer.step()
-            print(loss.item())
+            print(f'Epoch:{epoch}, Loss:{loss.item()}')
 
 train_iter = DataLoader(train_data, batch_size=1,
                         shuffle=True, collate_fn=generate_batch)
