@@ -148,24 +148,26 @@ model = MyTransformer(len(src_vcb), len(tgt_vcb))
 criterion = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters())
 
-count = 0
-for idx, (src, tgt) in enumerate(train_iter):
-    # src = src.unsqueeze(1)
-    # tgt = tgt.unsqueeze(1)
-    tgt_input = tgt[:-1, :]
-    logits = model(src, tgt_input)
-    tgt_out = tgt[1:, :]
+train = False
+if train:
+    count = 0
+    for idx, (src, tgt) in enumerate(train_iter):
+        # src = src.unsqueeze(1)
+        # tgt = tgt.unsqueeze(1)
+        tgt_input = tgt[:-1, :]
+        logits = model(src, tgt_input)
+        tgt_out = tgt[1:, :]
 
-    # if count > 0 and count % 10 == 0:
-    #     print(logits.argmax(-1).view(-1).tolist())
-    #     print(tgt_out.transpose(0, 1))
-    # count += 1
+        # if count > 0 and count % 10 == 0:
+        #     print(logits.argmax(-1).view(-1).tolist())
+        #     print(tgt_out.transpose(0, 1))
+        # count += 1
 
-    optimizer.zero_grad()
-    loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
-    loss.backward()
-    optimizer.step()
-    print(loss.item())
+        optimizer.zero_grad()
+        loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
+        loss.backward()
+        optimizer.step()
+        print(loss.item())
 
 train_iter = DataLoader(train_data, batch_size=1,
                         shuffle=True, collate_fn=generate_batch)
@@ -175,6 +177,7 @@ with torch.no_grad():
     for idx, (src, tgt) in enumerate(train_iter):
         # src = src.unsqueeze(1)
         # tgt = tgt.unsqueeze(1)
+
         memory = model.encode(src)
         ys = torch.ones(1, 1).fill_(BOS_IDX).long()
         for i in range(100):
