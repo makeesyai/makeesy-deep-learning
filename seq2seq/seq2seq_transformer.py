@@ -127,7 +127,9 @@ tgt_vcb = load_vocab('../data/vocab_tgt.txt')
 PAD_IDX = src_vcb.get('PAD')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
-BATCH_SIZE = 16
+BATCH_SIZE = 32
+EPOCHS = 10
+PATIENCE = 100
 
 train_data = load_data('../data/sources.txt',
                        '../data/targets.txt', src_vcb, tgt_vcb)
@@ -141,23 +143,26 @@ optimizer = Adam(model.parameters())
 
 train = True
 if train:
-    count = 0
-    for epoch in range(1):
+    steps = 0
+    total_loss = 0
+    for epoch in range(EPOCHS):
         for idx, (src, tgt) in enumerate(train_iter):
             tgt_input = tgt[:-1, :]
             logits = model(src, tgt_input)
             tgt_out = tgt[1:, :]
 
-            if count > 0 and count % 10 == 0:
-                print(logits.argmax(-1).view(-1).tolist())
-                print(tgt_out.transpose(0, 1))
-            count += 1
+            if steps > 0 and steps % PATIENCE == 0:
+                print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
+                total_loss = 0
+                # print(logits.argmax(-1).view(-1).tolist())
+                # print(tgt_out.transpose(0, 1))
 
+            steps += 1
             optimizer.zero_grad()
             loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
             loss.backward()
             optimizer.step()
-            print(f'Epoch:{epoch}, Loss:{loss.item()}')
+            total_loss += loss.item()
 
 train_iter = DataLoader(train_data, batch_size=1,
                         shuffle=True, collate_fn=generate_batch)
