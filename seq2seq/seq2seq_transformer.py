@@ -84,6 +84,7 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
             )
     return dada
 
+
 src_vcb = load_vocab('../data/vocab_src.txt')
 tgt_vcb = load_vocab('../data/vocab_tgt.txt')
 PAD_IDX = src_vcb.get('PAD')
@@ -100,6 +101,7 @@ optimizer = Adam(model.parameters())
 
 train = True
 if train:
+    count = 0
     for epoch in range(10):
         for idx, (src, tgt) in enumerate(train_data):
             # src = src.unsqueeze(1)
@@ -108,10 +110,10 @@ if train:
             logits = model(src, tgt_input)
             tgt_out = tgt[1:, :]
 
-            # if count > 0 and count % 10 == 0:
-            #     print(logits.argmax(-1).view(-1).tolist())
-            #     print(tgt_out.transpose(0, 1))
-            # count += 1
+            if count > 0 and count % 10 == 0:
+                print(logits.argmax(-1).view(-1).tolist())
+                print(tgt_out.transpose(0, 1))
+            count += 1
 
             optimizer.zero_grad()
             loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
