@@ -5,7 +5,7 @@ from torch import nn, Tensor
 from torch.nn import TransformerEncoderLayer, TransformerEncoder, Transformer
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim import Adam
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 
 
 class SeqEncoder(nn.Module):
@@ -73,13 +73,15 @@ class MyTransformer(nn.Module):
         return logits
 
 
-def create_vocab(file_path):
-    word2idx = {'PAD': 0, 'UNK': 1, '<s>': 2, '</s>': 3}
+def create_vocab(file_path, max_vocab):
+    word2idx = {'<pad>': 0, '<unk>': 1, '<s>': 2, '</s>': 3}
     index = len(word2idx)
     with open(file_path, encoding='utf8') as fin:
         for line in fin:
             words = line.split(' ')
             for word in words:
+                if index >= max_vocab:
+                    return word2idx
                 if word not in word2idx:
                     word2idx[word] = index
                     index += 1
@@ -95,8 +97,8 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
             sample_src = ['<s>'] + line_src.split() + ['</s>']
             sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
 
-            sample_src_idx = [vcb_src.get(t, vcb_src.get('UNK')) for t in sample_src]
-            sample_tgt_idx = [vcb_src.get(t, vcb_tgt.get('UNK')) for t in sample_tgt]
+            sample_src_idx = [vcb_src.get(t, vcb_src.get('<unk>')) for t in sample_src]
+            sample_tgt_idx = [vcb_tgt.get(t, vcb_tgt.get('<unk>')) for t in sample_tgt]
 
             dada.append(
                 (torch.tensor(sample_src_idx, dtype=torch.long),
@@ -115,18 +117,20 @@ def generate_batch(data_batch):
     return src_batch, tgt_batch
 
 
+src_file = '../data/wmt/WMT-News.de-en.de'
+tgt_file = '../data/wmt/WMT-News.de-en.en'
+max_vocab = 100000
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-src_vcb = create_vocab('../data/sources.txt')
-tgt_vcb = create_vocab('../data/targets.txt')
-PAD_IDX = src_vcb.get('PAD')
+src_vcb = create_vocab(src_file, max_vocab)
+tgt_vcb = create_vocab(tgt_file, max_vocab)
+PAD_IDX = src_vcb.get('<pad>')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
-BATCH_SIZE = 128
+BATCH_SIZE = 16
 EPOCHS = 10
 PATIENCE = 100
 
-train_data = load_data('../data/sources.txt',
-                       '../data/targets.txt', src_vcb, tgt_vcb)
+train_data = load_data(src_file, tgt_file, src_vcb, tgt_vcb)
 
 train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                         shuffle=True, collate_fn=generate_batch)
