@@ -111,7 +111,7 @@ BOS_IDX = sp.bos_id()
 EOS_IDX = sp.eos_id()
 num_sps = sp.vocab_size()
 
-BATCH_SIZE = 64
+BATCH_SIZE = 48
 EPOCHS = 10
 PATIENCE = 100
 
