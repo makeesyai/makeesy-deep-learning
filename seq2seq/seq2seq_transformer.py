@@ -81,15 +81,16 @@ def token2idx(data, vcb):
     return data_idx
 
 
-def load_vocab(file_path):
+def create_vocab(file_path):
     word2idx = {'PAD': 0, 'UNK': 1, '<s>': 2, '</s>': 3}
     index = len(word2idx)
     with open(file_path, encoding='utf8') as fin:
         for line in fin:
-            word, freq = line.split('\t')
-            if word not in word2idx:
-                word2idx[word] = index
-                index += 1
+            words = line.split(' ')
+            for word in words:
+                if word not in word2idx:
+                    word2idx[word] = index
+                    index += 1
     return word2idx
 
 
@@ -123,8 +124,8 @@ def generate_batch(data_batch):
 
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-src_vcb = load_vocab('../data/vocab_src.txt')
-tgt_vcb = load_vocab('../data/vocab_tgt.txt')
+src_vcb = create_vocab('../data/sources.txt')
+tgt_vcb = create_vocab('../data/targets.txt')
 PAD_IDX = src_vcb.get('PAD')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
