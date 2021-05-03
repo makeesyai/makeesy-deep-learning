@@ -127,7 +127,7 @@ tgt_vcb = load_vocab('../data/vocab_tgt.txt')
 PAD_IDX = src_vcb.get('PAD')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
-BATCH_SIZE = 2
+BATCH_SIZE = 16
 
 train_data = load_data('../data/sources.txt',
                        '../data/targets.txt', src_vcb, tgt_vcb)
@@ -159,7 +159,7 @@ if train:
             optimizer.step()
             print(f'Epoch:{epoch}, Loss:{loss.item()}')
 
-train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
+train_iter = DataLoader(train_data, batch_size=1,
                         shuffle=True, collate_fn=generate_batch)
 count = 0
 with torch.no_grad():
