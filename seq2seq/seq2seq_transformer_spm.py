@@ -108,10 +108,13 @@ train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                         shuffle=True, collate_fn=generate_batch)
 
 model = Seq2SeqTransformer(num_sps, num_sps)
+for p in model.parameters():
+    if p.dim() > 1:
+        nn.init.xavier_uniform_(p)
 model.to(device)
 
 criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
-optimizer = Adam(model.parameters())
+optimizer = Adam(model.parameters(), lr=0.0001, betas=(0.9, 0.98), eps=1e-9)
 
 train = True
 if train:
