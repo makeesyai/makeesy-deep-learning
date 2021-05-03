@@ -39,7 +39,7 @@ class PositionalEncoding(nn.Module):
 
 
 class MyTransformer(nn.Module):
-    def __init__(self, src_vocab, tgt_vocab, dim_embeddings=128, n_heads=2, ff_dim=512):
+    def __init__(self, src_vocab, tgt_vocab, dim_embeddings=256, n_heads=4, ff_dim=512):
         super(MyTransformer, self).__init__()
 
         self.src_embeddings = nn.Embedding(src_vocab, dim_embeddings)
@@ -49,12 +49,12 @@ class MyTransformer(nn.Module):
         # Encoder model
         encoder_norm = nn.LayerNorm(dim_embeddings)
         enc_layer = nn.TransformerEncoderLayer(dim_embeddings, n_heads, ff_dim)
-        self.encoder = nn.TransformerEncoder(enc_layer, num_layers=1, norm=encoder_norm)
+        self.encoder = nn.TransformerEncoder(enc_layer, num_layers=6, norm=encoder_norm)
 
         # Decoder model
         dec_layer = nn.TransformerDecoderLayer(dim_embeddings, n_heads, ff_dim)
         decoder_norm = nn.LayerNorm(dim_embeddings)
-        self.decoder = nn.TransformerDecoder(dec_layer, num_layers=1, norm=decoder_norm)
+        self.decoder = nn.TransformerDecoder(dec_layer, num_layers=6, norm=decoder_norm)
 
         # Generator
         self.generator = nn.Linear(dim_embeddings, tgt_vocab)
@@ -111,7 +111,7 @@ BOS_IDX = sp.bos_id()
 EOS_IDX = sp.eos_id()
 num_sps = sp.vocab_size()
 
-BATCH_SIZE = 48
+BATCH_SIZE = 16
 EPOCHS = 10
 PATIENCE = 100
 
