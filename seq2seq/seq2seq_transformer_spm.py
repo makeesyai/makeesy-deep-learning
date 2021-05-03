@@ -122,7 +122,7 @@ train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
 model = MyTransformer(num_sps, num_sps)
 model.to(device)
 
-criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
 optimizer = Adam(model.parameters())
 
 train = True
