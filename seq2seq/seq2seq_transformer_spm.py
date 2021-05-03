@@ -136,7 +136,7 @@ EOS_IDX = sp.eos_id()
 num_sps = sp.vocab_size()
 
 BATCH_SIZE = 16
-EPOCHS = 1
+EPOCHS = 16
 PATIENCE = 100
 
 
