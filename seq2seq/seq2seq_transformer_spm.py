@@ -27,7 +27,8 @@ class PositionalEncoding(nn.Module):
 
 
 class Seq2SeqTransformer(nn.Module):
-    def __init__(self, src_vocab, tgt_vocab, dim_embeddings=256, n_heads=4, ff_dim=512):
+    def __init__(self, src_vocab, tgt_vocab, dim_embeddings=512, n_heads=8, ff_dim=512,
+                 n_layers=3):
         super(Seq2SeqTransformer, self).__init__()
 
         self.src_embeddings = nn.Embedding(src_vocab, dim_embeddings)
@@ -37,12 +38,12 @@ class Seq2SeqTransformer(nn.Module):
         # Encoder model
         encoder_norm = nn.LayerNorm(dim_embeddings)
         enc_layer = nn.TransformerEncoderLayer(dim_embeddings, n_heads, ff_dim)
-        self.encoder = nn.TransformerEncoder(enc_layer, num_layers=6, norm=encoder_norm)
+        self.encoder = nn.TransformerEncoder(enc_layer, num_layers=n_layers, norm=encoder_norm)
 
         # Decoder model
         dec_layer = nn.TransformerDecoderLayer(dim_embeddings, n_heads, ff_dim)
         decoder_norm = nn.LayerNorm(dim_embeddings)
-        self.decoder = nn.TransformerDecoder(dec_layer, num_layers=6, norm=decoder_norm)
+        self.decoder = nn.TransformerDecoder(dec_layer, num_layers=n_layers, norm=decoder_norm)
 
         # Generator
         self.generator = nn.Linear(dim_embeddings, tgt_vocab)
