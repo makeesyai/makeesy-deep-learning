@@ -8,7 +8,7 @@ tensor = torch.rand((2, 3))
 tensor = tensor.to('cuda')  # Move tensor to GPU
 print(tensor.dtype)
 print(tensor.shape)
-print(tensor.device)
+print(tensor.DEVICE)
 
 
 # Initializing a Tensor

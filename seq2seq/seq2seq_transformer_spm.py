@@ -48,17 +48,22 @@ class Seq2SeqTransformer(nn.Module):
         # Generator
         self.generator = nn.Linear(dim_embeddings, tgt_vocab)
 
-    def encode(self, x):
-        memory = self.pe(self.src_embeddings(x))
-        return self.encoder(memory)
+    def encode(self, x, src_mask):
+        tensor = self.pe(self.src_embeddings(x))
+        return self.encoder(tensor, src_mask)
 
-    def decode(self, y, memory):
+    def decode(self, y, memory, tgt_mask):
         tensor_y = self.pe(self.tgt_embeddings(y))
-        return self.decoder(tensor_y, memory)
+        return self.decoder(tensor_y, memory, tgt_mask)
 
-    def forward(self, x, y):
-        memory = self.encode(x)
-        tensor = self.decode(y, memory)
+    def forward(self, x, y, src_mask, tgt_mask, src_padding_mask,
+                tgt_padding_mask,
+                memory_key_padding_mask):
+        tensor_x = self.pe(self.src_embeddings(x))
+        memory = self.encoder(tensor_x, src_mask, src_padding_mask)
+        tensor_y = self.pe(self.tgt_embeddings(y))
+        tensor = self.decoder(tensor_y, memory, tgt_mask, None, tgt_padding_mask,
+                              memory_key_padding_mask)
         logits = self.generator(tensor)
         return logits
 
@@ -88,7 +93,25 @@ def generate_batch(data_batch):
     return src_batch, tgt_batch
 
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+def generate_square_subsequent_mask(sz):
+    mask = (torch.triu(torch.ones((sz, sz), device=DEVICE)) == 1).transpose(0, 1)
+    mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+    return mask
+
+
+def create_mask(src, tgt):
+  src_seq_len = src.shape[0]
+  tgt_seq_len = tgt.shape[0]
+
+  tgt_mask = generate_square_subsequent_mask(tgt_seq_len)
+  src_mask = torch.zeros((src_seq_len, src_seq_len), device=DEVICE).type(torch.bool)
+
+  src_padding_mask = (src == PAD_IDX).transpose(0, 1)
+  tgt_padding_mask = (tgt == PAD_IDX).transpose(0, 1)
+  return src_mask, tgt_mask, src_padding_mask, tgt_padding_mask
+
+
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # device = 'cpu'
 src_file = '../data/wmt/WMT-News.de-en.de'
 tgt_file = '../data/wmt/WMT-News.de-en.en'
@@ -100,8 +123,8 @@ BOS_IDX = sp.bos_id()
 EOS_IDX = sp.eos_id()
 num_sps = sp.vocab_size()
 
-BATCH_SIZE = 16
-EPOCHS = 10
+BATCH_SIZE = 32
+EPOCHS = 1
 PATIENCE = 100
 
 
@@ -112,7 +135,7 @@ model = Seq2SeqTransformer(num_sps, num_sps)
 for p in model.parameters():
     if p.dim() > 1:
         nn.init.xavier_uniform_(p)
-model.to(device)
+model.to(DEVICE)
 
 criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
 optimizer = Adam(model.parameters(), lr=0.0001, betas=(0.9, 0.98), eps=1e-9)
@@ -123,10 +146,18 @@ if train:
     total_loss = 0
     for epoch in range(EPOCHS):
         for idx, (src, tgt) in enumerate(train_iter):
-            src = src.to(device)
-            tgt = tgt.to(device)
+            src = src.to(DEVICE)
+            tgt = tgt.to(DEVICE)
             tgt_input = tgt[:-1, :]
-            logits = model(src, tgt_input)
+
+            src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = \
+                create_mask(src, tgt_input)
+            # print(src_mask, src_padding_mask)
+            # print(tgt_mask, tgt_padding_mask)
+            # exit()
+            logits = model(src, tgt_input, src_mask, tgt_mask,
+                           src_padding_mask, tgt_padding_mask, src_padding_mask)
+
             tgt_out = tgt[1:, :]
             if steps > 0 and steps % PATIENCE == 0:
                 print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
@@ -147,13 +178,17 @@ count = 0
 with torch.no_grad():
     model.eval()
     for idx, (src, tgt) in enumerate(train_iter):
-        src = src.to(device)
-        tgt = tgt.to(device)
+        src = src.to(DEVICE)
+        tgt = tgt.to(DEVICE)
+        num_tokens = src.size(0)
+        src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool).to(DEVICE)
 
-        memory = model.encode(src)
+        memory = model.encode(src, src_mask)
         ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
         for i in range(100):
-            out = model.decode(ys, memory)
+            tgt_mask = (generate_square_subsequent_mask(ys.size(0))
+                        .type(torch.bool)).to(DEVICE)
+            out = model.decode(ys, memory, tgt_mask)
             out = out.transpose(0, 1)
             prob = model.generator(out[:, -1])
             _, next_word = torch.max(prob, dim=-1)
