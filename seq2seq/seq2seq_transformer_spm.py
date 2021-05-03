@@ -2,22 +2,10 @@ import math
 
 import torch
 from torch import nn, Tensor
-from torch.nn import TransformerEncoderLayer, TransformerEncoder, Transformer
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 import sentencepiece as spm
-
-
-class SeqEncoder(nn.Module):
-    def __init__(self, dim_embeddings=128, n_heads=2, ff_dim=512):
-        super(SeqEncoder, self).__init__()
-        enc_layer = TransformerEncoderLayer(dim_embeddings, n_heads, ff_dim)
-        self.transformer = TransformerEncoder(enc_layer, num_layers=1)
-
-    def forward(self, x):
-        tensor = self.transformer(x)
-        print(tensor.size())
 
 
 class PositionalEncoding(nn.Module):
@@ -38,9 +26,9 @@ class PositionalEncoding(nn.Module):
                             self.pos_embedding[:token_embedding.size(0), :])
 
 
-class MyTransformer(nn.Module):
+class Seq2SeqTransformer(nn.Module):
     def __init__(self, src_vocab, tgt_vocab, dim_embeddings=256, n_heads=4, ff_dim=512):
-        super(MyTransformer, self).__init__()
+        super(Seq2SeqTransformer, self).__init__()
 
         self.src_embeddings = nn.Embedding(src_vocab, dim_embeddings)
         self.tgt_embeddings = nn.Embedding(tgt_vocab, dim_embeddings)
@@ -119,7 +107,7 @@ PATIENCE = 100
 train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                         shuffle=True, collate_fn=generate_batch)
 
-model = MyTransformer(num_sps, num_sps)
+model = Seq2SeqTransformer(num_sps, num_sps)
 model.to(device)
 
 criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
