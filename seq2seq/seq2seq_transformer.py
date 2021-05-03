@@ -74,8 +74,8 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
     with open(file_src, encoding='utf8') as fin_src, \
             open(file_tgt, encoding='utf8') as fin_tgt:
         for line_src, line_tgt in zip(fin_src, fin_tgt):
-            sample_src = line_src.split()
-            sample_tgt = line_tgt.split()
+            sample_src = ['<s>'] + line_src.split() + ['</s>']
+            sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
             sample_src_idx = [vcb_src.get(t, vcb_src.get('UNK')) for t in sample_src]
             sample_tgt_idx = [vcb_src.get(t, vcb_tgt.get('UNK')) for t in sample_tgt]
             dada.append(
@@ -90,8 +90,6 @@ tgt_vcb = load_vocab('../data/vocab_tgt.txt')
 PAD_IDX = src_vcb.get('PAD')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
-BATCH_SIZE = 16
-
 train_data = load_data('../data/sources.txt',
                        '../data/targets.txt', src_vcb, tgt_vcb)
 
@@ -102,14 +100,16 @@ optimizer = Adam(model.parameters())
 train = True
 if train:
     count = 0
-    for epoch in range(10):
+    for epoch in range(1):
         for idx, (src, tgt) in enumerate(train_data):
-            # src = src.unsqueeze(1)
-            # tgt = tgt.unsqueeze(1)
+            src = src.unsqueeze(1)
+            tgt = tgt.unsqueeze(1)
             tgt_input = tgt[:-1, :]
             logits = model(src, tgt_input)
             tgt_out = tgt[1:, :]
-
+            print(tgt_input)
+            print(tgt_out)
+            exit()
             if count > 0 and count % 10 == 0:
                 print(logits.argmax(-1).view(-1).tolist())
                 print(tgt_out.transpose(0, 1))
@@ -125,8 +125,8 @@ count = 0
 with torch.no_grad():
     model.eval()
     for idx, (src, tgt) in enumerate(train_data):
-        # src = src.unsqueeze(1)
-        # tgt = tgt.unsqueeze(1)
+        src = src.unsqueeze(1)
+        tgt = tgt.unsqueeze(1)
         memory = model.encode(src)
         ys = torch.ones(1, 1).fill_(BOS_IDX).long()
         for i in range(100):

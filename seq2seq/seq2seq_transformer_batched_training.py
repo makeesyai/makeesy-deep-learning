@@ -98,11 +98,9 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
     with open(file_src, encoding='utf8') as fin_src, \
             open(file_tgt, encoding='utf8') as fin_tgt:
         for line_src, line_tgt in zip(fin_src, fin_tgt):
-            sample_src = line_src.split()
-            sample_tgt = line_tgt.split()
 
-            # sample_src = ['<s>'] + line_src.split() + ['</s>']
-            # sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
+            sample_src = ['<s>'] + line_src.split() + ['</s>']
+            sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
 
             sample_src_idx = [vcb_src.get(t, vcb_src.get('UNK')) for t in sample_src]
             sample_tgt_idx = [vcb_src.get(t, vcb_tgt.get('UNK')) for t in sample_tgt]
@@ -116,11 +114,9 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
 
 def generate_batch(data_batch):
     src_batch, tgt_batch = [], []
-
     for (src_item, tgt_item) in data_batch:
-        src_batch.append(torch.cat([torch.tensor([BOS_IDX]), src_item, torch.tensor([EOS_IDX])], dim=0))
-        tgt_batch.append(torch.cat([torch.tensor([BOS_IDX]), tgt_item, torch.tensor([EOS_IDX])], dim=0))
-
+        src_batch.append(src_item)
+        tgt_batch.append(tgt_item)
     src_batch = pad_sequence(src_batch, padding_value=PAD_IDX)
     tgt_batch = pad_sequence(tgt_batch, padding_value=PAD_IDX)
     return src_batch, tgt_batch
@@ -136,12 +132,13 @@ BATCH_SIZE = 16
 train_data = load_data('../data/sources.txt',
                        '../data/targets.txt', src_vcb, tgt_vcb)
 
-train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
+train_iter = DataLoader(train_data, batch_size=1,
                         shuffle=True, collate_fn=generate_batch)
 
 # for idx, (src, tgt) in enumerate(train_iter):
 #     print(src)
-#     print(tgt)
+#     print(tgt[1:, :])
+#     print(tgt[:, -1:])
 #     exit()
 
 model = MyTransformer(len(src_vcb), len(tgt_vcb))
@@ -150,7 +147,8 @@ optimizer = Adam(model.parameters())
 
 train = True
 if train:
-    for epoch in range(10):
+    count = 0
+    for epoch in range(1):
         for idx, (src, tgt) in enumerate(train_iter):
             # src = src.unsqueeze(1)
             # tgt = tgt.unsqueeze(1)
@@ -158,10 +156,10 @@ if train:
             logits = model(src, tgt_input)
             tgt_out = tgt[1:, :]
 
-            # if count > 0 and count % 10 == 0:
-            #     print(logits.argmax(-1).view(-1).tolist())
-            #     print(tgt_out.transpose(0, 1))
-            # count += 1
+            if count > 0 and count % 10 == 0:
+                print(logits.argmax(-1).view(-1).tolist())
+                print(tgt_out.transpose(0, 1))
+            count += 1
 
             optimizer.zero_grad()
             loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
