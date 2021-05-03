@@ -5,7 +5,7 @@ from torch import nn, Tensor
 from torch.nn import TransformerEncoderLayer, TransformerEncoder, Transformer
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim import Adam
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 
 class SeqEncoder(nn.Module):
@@ -122,12 +122,13 @@ def generate_batch(data_batch):
     return src_batch, tgt_batch
 
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 src_vcb = load_vocab('../data/vocab_src.txt')
 tgt_vcb = load_vocab('../data/vocab_tgt.txt')
 PAD_IDX = src_vcb.get('PAD')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
-BATCH_SIZE = 32
+BATCH_SIZE = 128
 EPOCHS = 10
 PATIENCE = 100
 
@@ -138,6 +139,8 @@ train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                         shuffle=True, collate_fn=generate_batch)
 
 model = MyTransformer(len(src_vcb), len(tgt_vcb))
+model.to(device)
+
 criterion = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters())
 
@@ -147,6 +150,9 @@ if train:
     total_loss = 0
     for epoch in range(EPOCHS):
         for idx, (src, tgt) in enumerate(train_iter):
+            src = src.to(device)
+            tgt = tgt.to(device)
+
             tgt_input = tgt[:-1, :]
             logits = model(src, tgt_input)
             tgt_out = tgt[1:, :]
@@ -170,8 +176,11 @@ count = 0
 with torch.no_grad():
     model.eval()
     for idx, (src, tgt) in enumerate(train_iter):
+        src = src.to(device)
+        tgt = tgt.to(device)
+
         memory = model.encode(src)
-        ys = torch.ones(1, 1).fill_(BOS_IDX).long()
+        ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
         for i in range(100):
             out = model.decode(ys, memory)
             out = out.transpose(0, 1)
@@ -179,7 +188,7 @@ with torch.no_grad():
             _, next_word = torch.max(prob, dim=-1)
             next_word = next_word.item()
             ys = torch.cat([ys,
-                            torch.ones(1, 1).fill_(next_word)], dim=0).long()
+                            torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=0)
             if next_word == EOS_IDX:
                 break
         print(ys.transpose(0, 1))
