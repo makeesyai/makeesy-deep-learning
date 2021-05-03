@@ -73,14 +73,6 @@ class MyTransformer(nn.Module):
         return logits
 
 
-def token2idx(data, vcb):
-    data_idx = []
-    for sample in data:
-        sample_idx = [vcb.get(t, vcb.get('UNK')) for t in sample]
-        data_idx.append(sample_idx)
-    return data_idx
-
-
 def create_vocab(file_path):
     word2idx = {'PAD': 0, 'UNK': 1, '<s>': 2, '</s>': 3}
     index = len(word2idx)
