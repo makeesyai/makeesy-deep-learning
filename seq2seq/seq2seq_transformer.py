@@ -1,7 +1,22 @@
 import math
+
 import torch
 from torch import nn, Tensor
+from torch.nn import TransformerEncoderLayer, TransformerEncoder, Transformer
+from torch.nn.utils.rnn import pad_sequence
 from torch.optim import Adam
+from torch.utils.data import DataLoader
+
+
+class SeqEncoder(nn.Module):
+    def __init__(self, dim_embeddings=128, n_heads=2, ff_dim=512):
+        super(SeqEncoder, self).__init__()
+        enc_layer = TransformerEncoderLayer(dim_embeddings, n_heads, ff_dim)
+        self.transformer = TransformerEncoder(enc_layer, num_layers=1)
+
+    def forward(self, x):
+        tensor = self.transformer(x)
+        print(tensor.size())
 
 
 class PositionalEncoding(nn.Module):
@@ -13,6 +28,7 @@ class PositionalEncoding(nn.Module):
         pos_embedding[:, 0::2] = torch.sin(pos * den)
         pos_embedding[:, 1::2] = torch.cos(pos * den)
         pos_embedding = pos_embedding.unsqueeze(-2)
+
         self.dropout = nn.Dropout(dropout)
         self.register_buffer('pos_embedding', pos_embedding)
 
@@ -57,6 +73,14 @@ class MyTransformer(nn.Module):
         return logits
 
 
+def token2idx(data, vcb):
+    data_idx = []
+    for sample in data:
+        sample_idx = [vcb.get(t, vcb.get('UNK')) for t in sample]
+        data_idx.append(sample_idx)
+    return data_idx
+
+
 def load_vocab(file_path):
     word2idx = {'PAD': 0, 'UNK': 1, '<s>': 2, '</s>': 3}
     index = len(word2idx)
@@ -74,10 +98,13 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
     with open(file_src, encoding='utf8') as fin_src, \
             open(file_tgt, encoding='utf8') as fin_tgt:
         for line_src, line_tgt in zip(fin_src, fin_tgt):
+
             sample_src = ['<s>'] + line_src.split() + ['</s>']
             sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
+
             sample_src_idx = [vcb_src.get(t, vcb_src.get('UNK')) for t in sample_src]
             sample_tgt_idx = [vcb_src.get(t, vcb_tgt.get('UNK')) for t in sample_tgt]
+
             dada.append(
                 (torch.tensor(sample_src_idx, dtype=torch.long),
                  torch.tensor(sample_tgt_idx, dtype=torch.long))
@@ -85,13 +112,28 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
     return dada
 
 
+def generate_batch(data_batch):
+    src_batch, tgt_batch = [], []
+    for (src_item, tgt_item) in data_batch:
+        src_batch.append(src_item)
+        tgt_batch.append(tgt_item)
+    src_batch = pad_sequence(src_batch, padding_value=PAD_IDX)
+    tgt_batch = pad_sequence(tgt_batch, padding_value=PAD_IDX)
+    return src_batch, tgt_batch
+
+
 src_vcb = load_vocab('../data/vocab_src.txt')
 tgt_vcb = load_vocab('../data/vocab_tgt.txt')
 PAD_IDX = src_vcb.get('PAD')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
+BATCH_SIZE = 2
+
 train_data = load_data('../data/sources.txt',
                        '../data/targets.txt', src_vcb, tgt_vcb)
+
+train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
+                        shuffle=True, collate_fn=generate_batch)
 
 model = MyTransformer(len(src_vcb), len(tgt_vcb))
 criterion = nn.CrossEntropyLoss()
@@ -101,15 +143,11 @@ train = True
 if train:
     count = 0
     for epoch in range(1):
-        for idx, (src, tgt) in enumerate(train_data):
-            src = src.unsqueeze(1)
-            tgt = tgt.unsqueeze(1)
+        for idx, (src, tgt) in enumerate(train_iter):
             tgt_input = tgt[:-1, :]
             logits = model(src, tgt_input)
             tgt_out = tgt[1:, :]
-            print(tgt_input)
-            print(tgt_out)
-            exit()
+
             if count > 0 and count % 10 == 0:
                 print(logits.argmax(-1).view(-1).tolist())
                 print(tgt_out.transpose(0, 1))
@@ -121,12 +159,12 @@ if train:
             optimizer.step()
             print(f'Epoch:{epoch}, Loss:{loss.item()}')
 
+train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
+                        shuffle=True, collate_fn=generate_batch)
 count = 0
 with torch.no_grad():
     model.eval()
-    for idx, (src, tgt) in enumerate(train_data):
-        src = src.unsqueeze(1)
-        tgt = tgt.unsqueeze(1)
+    for idx, (src, tgt) in enumerate(train_iter):
         memory = model.encode(src)
         ys = torch.ones(1, 1).fill_(BOS_IDX).long()
         for i in range(100):
