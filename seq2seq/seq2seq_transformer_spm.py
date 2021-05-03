@@ -8,6 +8,16 @@ from torch.utils.data import DataLoader
 import sentencepiece as spm
 
 
+class TokenEmbedding(nn.Module):
+    def __init__(self, vocab_size: int, emb_size):
+        super(TokenEmbedding, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, emb_size)
+        self.emb_size = emb_size
+
+    def forward(self, tokens: Tensor):
+        return self.embedding(tokens.long()) * math.sqrt(self.emb_size)
+
+
 class PositionalEncoding(nn.Module):
     def __init__(self, emb_size: int, dropout, maxlen: int = 5000):
         super(PositionalEncoding, self).__init__()
@@ -28,12 +38,14 @@ class PositionalEncoding(nn.Module):
 
 class Seq2SeqTransformer(nn.Module):
     def __init__(self, src_vocab, tgt_vocab, dim_embeddings=512, n_heads=8, ff_dim=512,
-                 n_layers=3):
+                 n_layers=3, dropout=0.1):
         super(Seq2SeqTransformer, self).__init__()
 
-        self.src_embeddings = nn.Embedding(src_vocab, dim_embeddings)
-        self.tgt_embeddings = nn.Embedding(tgt_vocab, dim_embeddings)
-        self.pe = PositionalEncoding(dim_embeddings, dropout=0.01)
+        self.emb_dim = dim_embeddings
+
+        self.src_embeddings = TokenEmbedding(src_vocab, dim_embeddings)
+        self.tgt_embeddings = TokenEmbedding(tgt_vocab, dim_embeddings)
+        self.pe = PositionalEncoding(dim_embeddings, dropout=dropout)
 
         # Encoder model
         encoder_norm = nn.LayerNorm(dim_embeddings)
