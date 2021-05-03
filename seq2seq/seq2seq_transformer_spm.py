@@ -99,8 +99,8 @@ def generate_batch(data_batch):
     return src_batch, tgt_batch
 
 
-# device = 'cuda' if torch.cuda.is_available() else 'cpu'
-device = 'cpu'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# device = 'cpu'
 src_file = '../data/wmt/WMT-News.de-en.de'
 tgt_file = '../data/wmt/WMT-News.de-en.en'
 sp = spm.SentencePieceProcessor(model_file='m.model', add_bos=True, add_eos=True)
@@ -110,9 +110,8 @@ PAD_IDX = sp.pad_id()
 BOS_IDX = sp.bos_id()
 EOS_IDX = sp.eos_id()
 num_sps = sp.vocab_size()
-# print(num_sps)
-# exit()
-BATCH_SIZE = 4
+
+BATCH_SIZE = 64
 EPOCHS = 10
 PATIENCE = 100
 
