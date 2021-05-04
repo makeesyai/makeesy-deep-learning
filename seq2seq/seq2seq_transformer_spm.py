@@ -127,7 +127,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # device = 'cpu'
 src_file = '../data/wmt/WMT-News.de-en.de'
 tgt_file = '../data/wmt/WMT-News.de-en.en'
-sp = spm.SentencePieceProcessor(model_file='m.model', add_bos=True, add_eos=True)
+sp = spm.SentencePieceProcessor(model_file='../data/wmt/wmt.de-en.model', add_bos=True, add_eos=True)
 train_data = load_data(src_file, tgt_file, sp)
 
 PAD_IDX = sp.pad_id()
