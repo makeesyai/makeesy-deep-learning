@@ -6,17 +6,15 @@
 
 import torch
 
-x = torch.tensor([[1, 2, 3], [2, 3, 4]], dtype=torch.float32)
-y = torch.tensor([[1, 2, 3], [2, 3, 4]], dtype=torch.float32)
+x = torch.tensor([[1, 2, 3], [2, 3, 4]])
+y = torch.tensor([[1, 2, 3], [2, 3, 4]])
+z = torch.add(x, y)
+print(z)
 z = torch.Tensor()
 torch.add(x, y, out=z)
 print(z)
 z = x.add(y)
 print(z)
-# z = x.add_(y)
-# print(z)
-# print(x)
-# print(x == z)
 
 # scalar
 z = x.add(2)
@@ -32,6 +30,12 @@ tensor = torch.tensor([[1],
                        [2]])
 z = x.add(tensor)
 print(z)
+
+# In place operation
+z = x.add_(y)
+print(z)
+print(x)
+print(x == z)
 
 # 3. Joining tensors
 x = torch.tensor([[1, 2, 3], [1, 2, 3]])
