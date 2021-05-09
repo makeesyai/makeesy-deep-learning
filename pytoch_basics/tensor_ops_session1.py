@@ -52,7 +52,9 @@ x = torch.tensor([[1, 2, 3],
                   [4, 5, 6]])
 y = torch.tensor([[7, 8, 9],
                   [10, 11, 12]])
+# In default dim=0
 z = torch.cat([x, y])
 print(z)
+# In specified dim
 z = torch.cat([x, y], dim=1)
 print(z)
