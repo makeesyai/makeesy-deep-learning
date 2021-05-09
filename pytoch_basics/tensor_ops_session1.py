@@ -1,4 +1,4 @@
-# Operations on Tensors
+# Operations on Tensors: Session 1
 # 1. Arithmetic operations (explain broadcasting: row/column, and single-element tensors)
 # torch.ops(t1, t2, t_out:optional), t1.ops(t2): element-wise/scalar/broadcasting
 import torch

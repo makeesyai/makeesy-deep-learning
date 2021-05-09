@@ -1,3 +1,4 @@
+# Operations on Tensors: Session 2
 # 1. Indexing and Slicing (In slicing the end index is always excluded)
 # tensor[d1], tensor[d1, d2], tensor[d1, d2, d3] .. tensor[d1, d2, .. dn]
 # tensor[d1_start:d1_end(excluded), d2_start:d2_end, ..dn_start:dn_end)
