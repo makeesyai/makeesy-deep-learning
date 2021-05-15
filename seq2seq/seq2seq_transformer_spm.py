@@ -107,7 +107,7 @@ class Seq2SeqTransformer(nn.Module):
         return logits
 
 
-def generate_batch(data_batch, PAD_IDX=0):
+def generate_batch(data_batch):
     src_batch, tgt_batch = [], []
     for (src_item, tgt_item) in data_batch:
         src_batch.append(src_item)
