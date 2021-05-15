@@ -139,13 +139,15 @@ def create_mask(src, tgt):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--epochs',
-                        default=10,
+                        default=10, type=int,
                         help='The batch size for training')
     parser.add_argument('--patience',
                         default=1000,
+                        type=int,
                         help='The batch size for training')
     parser.add_argument('--batch_size',
                         default=8,
+                        type=int,
                         help='The batch size for training')
     parser.add_argument('--source',
                         default='de',
