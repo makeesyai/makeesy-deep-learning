@@ -56,7 +56,7 @@ test_iter = DataLoader(test_data, batch_size=1,
                        shuffle=False, collate_fn=generate_batch)
 count = 0
 with torch.no_grad():
-    model = load_model('models/europarl.pytorch_model.bin')
+    model = load_model('models/pytorch_model.bin')
     model.eval()
     for idx, (src, tgt) in enumerate(test_iter):
         src = src.to(DEVICE)
