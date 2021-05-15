@@ -4,7 +4,7 @@ import torch
 from torch import nn, Tensor
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim import Adam
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 import sentencepiece as spm
 
 from seq2seq.data_utils import TextDatasetIterableSPM
