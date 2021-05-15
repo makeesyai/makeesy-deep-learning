@@ -150,9 +150,9 @@ if __name__ == '__main__':
     EOS_IDX = sp.eos_id()
     num_sps = sp.vocab_size()
 
-    BATCH_SIZE = 16
+    BATCH_SIZE = 8
     EPOCHS = 16
-    PATIENCE = 100
+    PATIENCE = 1000
 
     train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                             shuffle=False, collate_fn=generate_batch)
@@ -188,6 +188,9 @@ if __name__ == '__main__':
                 if steps > 0 and steps % PATIENCE == 0:
                     print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
                     total_loss = 0
+                    # Save the model
+                    save_model(model, 'models/europarl.pytorch_model.bin')
+
                     # print(logits.argmax(-1).view(-1).tolist())
                     # print(tgt_out.transpose(0, 1))
 
