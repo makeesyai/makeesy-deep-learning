@@ -20,7 +20,7 @@ num_sps = sp.vocab_size()
 BATCH_SIZE = 16
 EPOCHS = 16
 PATIENCE = 100
-train_iter = DataLoader(train_data, batch_size=16,
+train_iter = DataLoader(train_data, batch_size=1,
                         shuffle=False, collate_fn=generate_batch)
 count = 0
 with torch.no_grad():
