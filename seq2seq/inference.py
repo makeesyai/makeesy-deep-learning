@@ -38,8 +38,8 @@ def create_mask(src, tgt):
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # device = 'cpu'
-src_file = '../data/wmt/WMT-News.de-en.de'
-tgt_file = '../data/wmt/WMT-News.de-en.en'
+src_file = '../data/europarl/source.test.txt'
+tgt_file = '../data/europarl/target.test.txt'
 sp = spm.SentencePieceProcessor(model_file='../data/wmt/wmt.de-en.model', add_bos=True, add_eos=True)
 train_data = TextDatasetIterableSPM(src_file, tgt_file, sp)
 PAD_IDX = sp.pad_id()

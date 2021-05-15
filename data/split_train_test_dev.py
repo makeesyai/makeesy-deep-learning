@@ -15,11 +15,11 @@ print(test.shape)
 print(dev.shape)
 
 for column in df.columns:
-    test[column].to_csv('../data/europarl/' + column + 'test_.csv',
+    test[column].to_csv('../data/europarl/' + column + '.test.txt',
                         index=None, header=None)
 for column in df.columns:
-    dev[column].to_csv('../data/europarl/' + column + 'dev_.csv',
+    dev[column].to_csv('../data/europarl/' + column + '.dev.txt',
                         index=None, header=None)
 for column in df.columns:
-    train[column].to_csv('../data/europarl/' + column + 'train_.csv',
+    train[column].to_csv('../data/europarl/' + column + '.train.txt',
                         index=None, header=None)
