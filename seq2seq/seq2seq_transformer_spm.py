@@ -138,9 +138,10 @@ def create_mask(src, tgt):
 if __name__ == '__main__':
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
     # device = 'cpu'
-    src_file = '../data/wmt/WMT-News.de-en.de'
-    tgt_file = '../data/wmt/WMT-News.de-en.en'
-    sp = spm.SentencePieceProcessor(model_file='../data/wmt/wmt.de-en.model', add_bos=True, add_eos=True)
+    src_file = '../data/europarl/source.train.txt'
+    tgt_file = '../data/europarl/target.train.txt'
+    sp = spm.SentencePieceProcessor(model_file='../data/europarl/Europarl.de-en.model',
+                                    add_bos=True, add_eos=True)
     # train_data = load_data(src_file, tgt_file, sp)
     train_data = TextDatasetIterableSPM(src_file, tgt_file, sp)
 
@@ -198,15 +199,18 @@ if __name__ == '__main__':
                 total_loss += loss.item()
 
             # Save the model
-            save_model(model, 'models/pytorch_model.bin')
+            save_model(model, 'models/europarl.pytorch_model.bin')
 
-    train_iter = DataLoader(train_data, batch_size=16,
+    src_file = '../data/europarl/source.test.txt'
+    tgt_file = '../data/europarl/target.test.txt'
+    test_data = TextDatasetIterableSPM(src_file, tgt_file, sp)
+    test_iter = DataLoader(test_data, batch_size=16,
                             shuffle=False, collate_fn=generate_batch)
     count = 0
     with torch.no_grad():
-        model = load_model('models/pytorch_model.bin')
+        model = load_model('models/europarl.pytorch_model.bin')
         model.eval()
-        for idx, (src, tgt) in enumerate(train_iter):
+        for idx, (src, tgt) in enumerate(test_iter):
             src = src.to(DEVICE)
             tgt = tgt.to(DEVICE)
             num_tokens = src.size(0)
