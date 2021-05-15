@@ -46,8 +46,8 @@ with torch.no_grad():
                             torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=0)
             if next_word == EOS_IDX:
                 break
-        print(ys.transpose(0, 1))
-        print(tgt.transpose(0, 1))
+        print(f'The prediction: {sp.decode(ys.view(-1).tolist())}')
+        print(f'The Gold: {sp.decode(tgt.view(-1).tolist())}')
         count += 1
         if count == 10:
             exit()
