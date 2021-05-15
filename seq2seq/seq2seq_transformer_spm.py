@@ -4,7 +4,7 @@ import torch
 from torch import nn, Tensor
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim import Adam
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 import sentencepiece as spm
 
 
@@ -104,19 +104,25 @@ class Seq2SeqTransformer(nn.Module):
         return logits
 
 
-def load_data(file_src, file_tgt, sp):
-    dada = []
-    with open(file_src, encoding='utf8') as fin_src, \
-            open(file_tgt, encoding='utf8') as fin_tgt:
-        for line_src, line_tgt in zip(fin_src, fin_tgt):
-            # Encode src and tgt
-            sample_src_idx = sp.encode(line_src)
-            sample_tgt_idx = sp.encode(line_tgt)
-            dada.append(
-                (torch.tensor(sample_src_idx, dtype=torch.long),
-                 torch.tensor(sample_tgt_idx, dtype=torch.long))
-            )
-    return dada
+class DatasetNMT(Dataset):
+    def __init__(self, file_src, file_tgt, sp):
+        self.dada = []
+        with open(file_src, encoding='utf8') as fin_src, \
+                open(file_tgt, encoding='utf8') as fin_tgt:
+            for line_src, line_tgt in zip(fin_src, fin_tgt):
+                # Encode src and tgt
+                sample_src_idx = sp.encode(line_src)
+                sample_tgt_idx = sp.encode(line_tgt)
+                self.dada.append(
+                    (torch.tensor(sample_src_idx, dtype=torch.long),
+                     torch.tensor(sample_tgt_idx, dtype=torch.long))
+                )
+
+    def __len__(self):
+        return len(self.dada)
+
+    def __getitem__(self, idx):
+        return self.dada[idx]
 
 
 def generate_batch(data_batch):
@@ -152,7 +158,8 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 src_file = '../data/wmt/WMT-News.de-en.de'
 tgt_file = '../data/wmt/WMT-News.de-en.en'
 sp = spm.SentencePieceProcessor(model_file='../data/wmt/wmt.de-en.model', add_bos=True, add_eos=True)
-train_data = load_data(src_file, tgt_file, sp)
+# train_data = load_data(src_file, tgt_file, sp)
+train_data = DatasetNMT(src_file, tgt_file, sp)
 
 PAD_IDX = sp.pad_id()
 BOS_IDX = sp.bos_id()
@@ -217,7 +224,7 @@ with torch.no_grad():
         src = src.to(DEVICE)
         tgt = tgt.to(DEVICE)
         num_tokens = src.size(0)
-        src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool).to(DEVICE)
+        src_mask = (torch.zeros(num_tokens, num_tokens)).type('torch.bool').to(DEVICE)
 
         memory = model.encode(src, src_mask)
         ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
