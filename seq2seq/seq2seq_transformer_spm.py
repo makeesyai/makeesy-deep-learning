@@ -68,14 +68,38 @@ class Seq2SeqTransformer(nn.Module):
         tensor_y = self.pe(self.tgt_embeddings(y))
         return self.decoder(tensor_y, memory, tgt_mask)
 
-    def forward(self, x, y, src_mask, tgt_mask, src_padding_mask,
-                tgt_padding_mask,
+    def forward(self, x, y, src_mask, tgt_mask,
+                src_key_padding_mask,
+                tgt_key_padding_mask,
                 memory_key_padding_mask):
+        """
+        :param x:
+        :param y:
+        :param src_mask:
+        :param tgt_mask:
+        :param src_key_padding_mask:
+        :param tgt_key_padding_mask:
+        :param memory_key_padding_mask:
+        :return:
+        Note: [src/tgt/memory]_mask ensures that position i is allowed to attend the unmasked
+            positions. If a ByteTensor is provided, the non-zero positions are not allowed to attend
+            while the zero positions will be unchanged. If a BoolTensor is provided, positions with ``True``
+            are not allowed to attend while ``False`` values will be unchanged. If a FloatTensor
+            is provided, it will be added to the attention weight.
+
+        [src/tgt/memory]_key_padding_mask provides specified elements in the key to be ignored by
+            the attention. If a ByteTensor is provided, the non-zero positions will be ignored while the zero
+            positions will be unchanged. If a BoolTensor is provided, the positions with the
+            value of ``True`` will be ignored while the position with the value of ``False`` will be unchanged.
+
+        """
         tensor_x = self.pe(self.src_embeddings(x))
-        memory = self.encoder(tensor_x, src_mask, src_padding_mask)
+        memory = self.encoder(tensor_x, src_mask, src_key_padding_mask)
         tensor_y = self.pe(self.tgt_embeddings(y))
-        tensor = self.decoder(tensor_y, memory, tgt_mask, None, tgt_padding_mask,
-                              memory_key_padding_mask)
+        tensor = self.decoder(tensor_y, memory, tgt_mask, memory_mask=None,
+                              tgt_key_padding_mask=tgt_key_padding_mask,
+                              memory_key_padding_mask=memory_key_padding_mask
+                              )
         logits = self.generator(tensor)
         return logits
 
