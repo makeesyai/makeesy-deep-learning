@@ -149,7 +149,7 @@ if __name__ == '__main__':
     EOS_IDX = sp.eos_id()
     num_sps = sp.vocab_size()
 
-    BATCH_SIZE = 16
+    BATCH_SIZE = 32
     EPOCHS = 16
     PATIENCE = 100
 
