@@ -107,7 +107,7 @@ class Seq2SeqTransformer(nn.Module):
         return logits
 
 
-def generate_batch(data_batch):
+def generate_batch(data_batch, PAD_IDX=0):
     src_batch, tgt_batch = [], []
     for (src_item, tgt_item) in data_batch:
         src_batch.append(src_item)
@@ -117,17 +117,17 @@ def generate_batch(data_batch):
     return src_batch, tgt_batch
 
 
-def generate_square_subsequent_mask(sz):
+def generate_square_subsequent_mask(sz, DEVICE):
     mask = (torch.triu(torch.ones((sz, sz), device=DEVICE)) == 1).transpose(0, 1)
     mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
     return mask
 
 
-def create_mask(src, tgt):
+def create_mask(src, tgt, DEVICE):
     src_seq_len = src.shape[0]
     tgt_seq_len = tgt.shape[0]
 
-    tgt_mask = generate_square_subsequent_mask(tgt_seq_len)
+    tgt_mask = generate_square_subsequent_mask(tgt_seq_len, DEVICE)
     src_mask = torch.zeros((src_seq_len, src_seq_len), device=DEVICE).type(torch.bool)
 
     src_padding_mask = (src == PAD_IDX).transpose(0, 1)
@@ -135,99 +135,99 @@ def create_mask(src, tgt):
     return src_mask, tgt_mask, src_padding_mask, tgt_padding_mask
 
 
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
-# device = 'cpu'
-src_file = '../data/wmt/WMT-News.de-en.de'
-tgt_file = '../data/wmt/WMT-News.de-en.en'
-sp = spm.SentencePieceProcessor(model_file='../data/wmt/wmt.de-en.model', add_bos=True, add_eos=True)
-# train_data = load_data(src_file, tgt_file, sp)
-train_data = TextDatasetIterableSPM(src_file, tgt_file, sp)
+if __name__ == '__main__':
+    DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # device = 'cpu'
+    src_file = '../data/wmt/WMT-News.de-en.de'
+    tgt_file = '../data/wmt/WMT-News.de-en.en'
+    sp = spm.SentencePieceProcessor(model_file='../data/wmt/wmt.de-en.model', add_bos=True, add_eos=True)
+    # train_data = load_data(src_file, tgt_file, sp)
+    train_data = TextDatasetIterableSPM(src_file, tgt_file, sp)
 
-PAD_IDX = sp.pad_id()
-BOS_IDX = sp.bos_id()
-EOS_IDX = sp.eos_id()
-num_sps = sp.vocab_size()
+    PAD_IDX = sp.pad_id()
+    BOS_IDX = sp.bos_id()
+    EOS_IDX = sp.eos_id()
+    num_sps = sp.vocab_size()
 
-BATCH_SIZE = 16
-EPOCHS = 16
-PATIENCE = 100
+    BATCH_SIZE = 16
+    EPOCHS = 16
+    PATIENCE = 100
 
+    train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
+                            shuffle=False, collate_fn=generate_batch)
 
-train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
-                        shuffle=False, collate_fn=generate_batch)
+    model = Seq2SeqTransformer(num_sps, num_sps)
+    for p in model.parameters():
+        if p.dim() > 1:
+            nn.init.xavier_uniform_(p)
+    model.to(DEVICE)
 
-model = Seq2SeqTransformer(num_sps, num_sps)
-for p in model.parameters():
-    if p.dim() > 1:
-        nn.init.xavier_uniform_(p)
-model.to(DEVICE)
+    criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
+    optimizer = Adam(model.parameters(), lr=0.0001, betas=(0.9, 0.98), eps=1e-9)
 
-criterion = nn.CrossEntropyLoss(ignore_index=PAD_IDX)
-optimizer = Adam(model.parameters(), lr=0.0001, betas=(0.9, 0.98), eps=1e-9)
+    train = True
+    if train:
+        steps = 0
+        total_loss = 0
+        for epoch in range(EPOCHS):
+            for idx, (src, tgt) in enumerate(train_iter):
+                src = src.to(DEVICE)
+                tgt = tgt.to(DEVICE)
+                tgt_input = tgt[:-1, :]
 
-train = True
-if train:
-    steps = 0
-    total_loss = 0
-    for epoch in range(EPOCHS):
+                src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = \
+                    create_mask(src, tgt_input, DEVICE)
+                # print(src_mask, src_padding_mask)
+                # print(tgt_mask, tgt_padding_mask)
+                # exit()
+                logits = model(src, tgt_input, src_mask, tgt_mask,
+                               src_padding_mask, tgt_padding_mask, src_padding_mask)
+
+                tgt_out = tgt[1:, :]
+                if steps > 0 and steps % PATIENCE == 0:
+                    print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
+                    total_loss = 0
+                    # print(logits.argmax(-1).view(-1).tolist())
+                    # print(tgt_out.transpose(0, 1))
+
+                steps += 1
+                optimizer.zero_grad()
+                loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
+                loss.backward()
+                optimizer.step()
+                total_loss += loss.item()
+
+            # Save the model
+            save_model(model, 'models/pytorch_model.bin')
+
+    train_iter = DataLoader(train_data, batch_size=16,
+                            shuffle=False, collate_fn=generate_batch)
+    count = 0
+    with torch.no_grad():
+        model = load_model('models/pytorch_model.bin')
+        model.eval()
         for idx, (src, tgt) in enumerate(train_iter):
             src = src.to(DEVICE)
             tgt = tgt.to(DEVICE)
-            tgt_input = tgt[:-1, :]
+            num_tokens = src.size(0)
+            src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool).to(DEVICE)
 
-            src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = \
-                create_mask(src, tgt_input)
-            # print(src_mask, src_padding_mask)
-            # print(tgt_mask, tgt_padding_mask)
-            # exit()
-            logits = model(src, tgt_input, src_mask, tgt_mask,
-                           src_padding_mask, tgt_padding_mask, src_padding_mask)
-
-            tgt_out = tgt[1:, :]
-            if steps > 0 and steps % PATIENCE == 0:
-                print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
-                total_loss = 0
-                # print(logits.argmax(-1).view(-1).tolist())
-                # print(tgt_out.transpose(0, 1))
-
-            steps += 1
-            optimizer.zero_grad()
-            loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
-            loss.backward()
-            optimizer.step()
-            total_loss += loss.item()
-
-        # Save the model
-        save_model(model, 'models/pytorch_model.bin')
-
-train_iter = DataLoader(train_data, batch_size=16,
-                        shuffle=False, collate_fn=generate_batch)
-count = 0
-with torch.no_grad():
-    model = load_model('models/pytorch_model.bin')
-    model.eval()
-    for idx, (src, tgt) in enumerate(train_iter):
-        src = src.to(DEVICE)
-        tgt = tgt.to(DEVICE)
-        num_tokens = src.size(0)
-        src_mask = (torch.zeros(num_tokens, num_tokens)).type('torch.bool').to(DEVICE)
-
-        memory = model.encode(src, src_mask)
-        ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
-        for i in range(100):
-            tgt_mask = (generate_square_subsequent_mask(ys.size(0))
-                        .type(torch.bool)).to(DEVICE)
-            out = model.decode(ys, memory, tgt_mask)
-            out = out.transpose(0, 1)
-            prob = model.generator(out[:, -1])
-            _, next_word = torch.max(prob, dim=-1)
-            next_word = next_word.item()
-            ys = torch.cat([ys,
-                            torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=0)
-            if next_word == EOS_IDX:
-                break
-        print(ys.transpose(0, 1))
-        print(tgt.transpose(0, 1))
-        count += 1
-        if count == 10:
-            exit()
+            memory = model.encode(src, src_mask)
+            ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
+            for i in range(100):
+                tgt_mask = (generate_square_subsequent_mask(ys.size(0))
+                            .type(torch.bool)).to(DEVICE)
+                out = model.decode(ys, memory, tgt_mask)
+                out = out.transpose(0, 1)
+                prob = model.generator(out[:, -1])
+                _, next_word = torch.max(prob, dim=-1)
+                next_word = next_word.item()
+                ys = torch.cat([ys,
+                                torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=0)
+                if next_word == EOS_IDX:
+                    break
+            print(ys.transpose(0, 1))
+            print(tgt.transpose(0, 1))
+            count += 1
+            if count == 10:
+                exit()
