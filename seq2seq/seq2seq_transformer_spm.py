@@ -7,6 +7,9 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader, Dataset
 import sentencepiece as spm
 
+from seq2seq.data_utils import TextDatasetIterableSPM
+from seq2seq.model_utils import save_model, load_model
+
 
 class TokenEmbedding(nn.Module):
     def __init__(self, vocab_size: int, emb_size):
@@ -104,27 +107,6 @@ class Seq2SeqTransformer(nn.Module):
         return logits
 
 
-class DatasetNMT(Dataset):
-    def __init__(self, file_src, file_tgt, sp):
-        self.dada = []
-        with open(file_src, encoding='utf8') as fin_src, \
-                open(file_tgt, encoding='utf8') as fin_tgt:
-            for line_src, line_tgt in zip(fin_src, fin_tgt):
-                # Encode src and tgt
-                sample_src_idx = sp.encode(line_src)
-                sample_tgt_idx = sp.encode(line_tgt)
-                self.dada.append(
-                    (torch.tensor(sample_src_idx, dtype=torch.long),
-                     torch.tensor(sample_tgt_idx, dtype=torch.long))
-                )
-
-    def __len__(self):
-        return len(self.dada)
-
-    def __getitem__(self, idx):
-        return self.dada[idx]
-
-
 def generate_batch(data_batch):
     src_batch, tgt_batch = [], []
     for (src_item, tgt_item) in data_batch:
@@ -159,7 +141,7 @@ src_file = '../data/wmt/WMT-News.de-en.de'
 tgt_file = '../data/wmt/WMT-News.de-en.en'
 sp = spm.SentencePieceProcessor(model_file='../data/wmt/wmt.de-en.model', add_bos=True, add_eos=True)
 # train_data = load_data(src_file, tgt_file, sp)
-train_data = DatasetNMT(src_file, tgt_file, sp)
+train_data = TextDatasetIterableSPM(src_file, tgt_file, sp)
 
 PAD_IDX = sp.pad_id()
 BOS_IDX = sp.bos_id()
@@ -172,7 +154,7 @@ PATIENCE = 100
 
 
 train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
-                        shuffle=True, collate_fn=generate_batch)
+                        shuffle=False, collate_fn=generate_batch)
 
 model = Seq2SeqTransformer(num_sps, num_sps)
 for p in model.parameters():
@@ -215,10 +197,14 @@ if train:
             optimizer.step()
             total_loss += loss.item()
 
-train_iter = DataLoader(train_data, batch_size=1,
-                        shuffle=True, collate_fn=generate_batch)
+        # Save the model
+        save_model(model, 'models/pytorch_model.bin')
+
+train_iter = DataLoader(train_data, batch_size=16,
+                        shuffle=False, collate_fn=generate_batch)
 count = 0
 with torch.no_grad():
+    model = load_model('models/pytorch_model.bin')
     model.eval()
     for idx, (src, tgt) in enumerate(train_iter):
         src = src.to(DEVICE)
