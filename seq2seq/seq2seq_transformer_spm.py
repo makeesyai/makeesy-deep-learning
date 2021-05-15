@@ -138,13 +138,36 @@ def create_mask(src, tgt):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch_size', default=8, help='The batch size for training')
-    parser.add_argument('--source', default='de', help='The source language.')
-    parser.add_argument('--target', default='en', help='The target language.')
-    parser.add_argument('--train', default='../data/europarl/train', help='Prefix to train.')
-    parser.add_argument('--test', default='../data/europarl/test', help='Prefix to test.')
-    parser.add_argument('--dev', default='../data/europarl/dev', help='Prefix to dev.')
-    parser.add_argument('--spm', default='../data/europarl/Europarl.de-en.model', help='Model path to spm model.')
+    parser.add_argument('--epochs',
+                        default=10,
+                        help='The batch size for training')
+    parser.add_argument('--patience',
+                        default=1000,
+                        help='The batch size for training')
+    parser.add_argument('--batch_size',
+                        default=8,
+                        help='The batch size for training')
+    parser.add_argument('--source',
+                        default='de',
+                        help='The source language.')
+    parser.add_argument('--target',
+                        default='en',
+                        help='The target language.')
+    parser.add_argument('--train',
+                        default='../data/europarl/train',
+                        help='Prefix to train.')
+    parser.add_argument('--test',
+                        default='../data/europarl/test',
+                        help='Prefix to test.')
+    parser.add_argument('--dev',
+                        default='../data/europarl/dev',
+                        help='Prefix to dev.')
+    parser.add_argument('--spm',
+                        default='../data/europarl/Europarl.de-en.model',
+                        help='Path to spm model.')
+    parser.add_argument('--model_file',
+                        default='models/pytorch_model.bin',
+                        help='Model path.')
     args = parser.parse_args()
 
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -161,11 +184,7 @@ if __name__ == '__main__':
     EOS_IDX = sp.eos_id()
     num_sps = sp.vocab_size()
 
-    BATCH_SIZE = 8
-    EPOCHS = 16
-    PATIENCE = 1000
-
-    train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
+    train_iter = DataLoader(train_data, batch_size=args.batch_size,
                             shuffle=False, collate_fn=generate_batch)
 
     model = Seq2SeqTransformer(num_sps, num_sps)
@@ -181,7 +200,7 @@ if __name__ == '__main__':
     if train:
         steps = 0
         total_loss = 0
-        for epoch in range(EPOCHS):
+        for epoch in range(args.epochs):
             for idx, (src, tgt) in enumerate(train_iter):
                 src = src.to(DEVICE)
                 tgt = tgt.to(DEVICE)
@@ -196,11 +215,11 @@ if __name__ == '__main__':
                                src_padding_mask, tgt_padding_mask, src_padding_mask)
 
                 tgt_out = tgt[1:, :]
-                if steps > 0 and steps % PATIENCE == 0:
-                    print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
+                if steps > 0 and steps % args.patience == 0:
+                    print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/args.patience}')
                     total_loss = 0
                     # Save the model
-                    save_model(model, 'models/europarl.pytorch_model.bin')
+                    save_model(model, args.model_file)
 
                     # print(logits.argmax(-1).view(-1).tolist())
                     # print(tgt_out.transpose(0, 1))
@@ -213,17 +232,17 @@ if __name__ == '__main__':
                 total_loss += loss.item()
 
             # Save the model
-            save_model(model, 'models/europarl.pytorch_model.bin')
+            save_model(model, args.model_file)
 
     src_file = args.test + '.' + args.source
     tgt_file = args.test + '.' + args.target
 
     test_data = TextDatasetIterableSPM(src_file, tgt_file, sp)
-    test_iter = DataLoader(test_data, batch_size=16,
+    test_iter = DataLoader(test_data, batch_size=args.batch_size,
                             shuffle=False, collate_fn=generate_batch)
     count = 0
     with torch.no_grad():
-        model = load_model('models/europarl.pytorch_model.bin')
+        model = load_model(args.model_file)
         model.eval()
         for idx, (src, tgt) in enumerate(test_iter):
             src = src.to(DEVICE)
