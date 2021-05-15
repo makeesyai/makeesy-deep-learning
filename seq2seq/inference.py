@@ -38,8 +38,8 @@ def create_mask(src, tgt):
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 # device = 'cpu'
-src_file = '../data/europarl/source.test.txt'
-tgt_file = '../data/europarl/target.test.txt'
+src_file = '../data/europarl/test.de'
+tgt_file = '../data/europarl/test.en'
 sp = spm.SentencePieceProcessor(model_file='../data/europarl/Europarl.de-en.model',
                                 add_bos=True, add_eos=True)
 

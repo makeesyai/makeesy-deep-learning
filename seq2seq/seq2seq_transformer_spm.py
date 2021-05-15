@@ -1,3 +1,4 @@
+import argparse
 import math
 
 import torch
@@ -136,11 +137,21 @@ def create_mask(src, tgt):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--batch_size', default=8, help='The batch size for training')
+    parser.add_argument('--source', default='de', help='The source language.')
+    parser.add_argument('--target', default='en', help='The target language.')
+    parser.add_argument('--train', default='../data/europarl/train', help='Prefix to train.')
+    parser.add_argument('--test', default='../data/europarl/test', help='Prefix to test.')
+    parser.add_argument('--dev', default='../data/europarl/dev', help='Prefix to dev.')
+    parser.add_argument('--spm', default='../data/europarl/Europarl.de-en.model', help='Model path to spm model.')
+    args = parser.parse_args()
+
     DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
     # device = 'cpu'
-    src_file = '../data/europarl/source.train.txt'
-    tgt_file = '../data/europarl/target.train.txt'
-    sp = spm.SentencePieceProcessor(model_file='../data/europarl/Europarl.de-en.model',
+    src_file = args.train + '.' + args.source
+    tgt_file = args.train + '.' + args.target
+    sp = spm.SentencePieceProcessor(model_file=args.spm,
                                     add_bos=True, add_eos=True)
     # train_data = load_data(src_file, tgt_file, sp)
     train_data = TextDatasetIterableSPM(src_file, tgt_file, sp)
@@ -204,8 +215,9 @@ if __name__ == '__main__':
             # Save the model
             save_model(model, 'models/europarl.pytorch_model.bin')
 
-    src_file = '../data/europarl/source.test.txt'
-    tgt_file = '../data/europarl/target.test.txt'
+    src_file = args.test + '.' + args.source
+    tgt_file = args.test + '.' + args.target
+
     test_data = TextDatasetIterableSPM(src_file, tgt_file, sp)
     test_iter = DataLoader(test_data, batch_size=16,
                             shuffle=False, collate_fn=generate_batch)
