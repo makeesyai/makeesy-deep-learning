@@ -80,8 +80,8 @@ class TextDatasetIterableSPM(IterableDataset):
 
         zip_iter = zip(itr_src, itr_tgt)
         mapped_itr = map(self.preprocess, zip_iter)
-
-        return mapped_itr
+        for example in mapped_itr:
+            yield example
 
 
 def generate_batch(data_batch, PAD_IDX):
