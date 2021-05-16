@@ -75,13 +75,10 @@ class TextDatasetIterableSPM(IterableDataset):
                 torch.tensor(sample_tgt_idx, dtype=torch.long))
 
     def __iter__(self):
-        itr_src = open(self.src_file, encoding='utf8')
-        itr_tgt = open(self.tgt_file, encoding='utf8')
-
-        zip_iter = zip(itr_src, itr_tgt)
-        mapped_itr = map(self.preprocess, zip_iter)
-        for example in mapped_itr:
-            yield example
+        with open(self.src_file, encoding='utf8') as itr_src, \
+                open(self.tgt_file, encoding='utf8') as itr_tgt:
+            for zip_example in zip(itr_src, itr_tgt):
+                yield self.preprocess(zip_example)
 
 
 def generate_batch(data_batch, PAD_IDX):
