@@ -1,43 +1,10 @@
 import random
 import torch
 from torch.nn.utils.rnn import pad_sequence
-from torch.utils.data import DataLoader
-from torch.utils.data.sampler import Sampler
+from torch.utils.data import DataLoader, IterableDataset
+from torch.utils.data.sampler import Sampler, T_co
+
 max_src_in_batch, max_tgt_in_batch = 0, 0
-
-
-def create_vocab(file_path, max_vocab):
-    word2idx = {'<pad>': 0, '<unk>': 1, '<s>': 2, '</s>': 3}
-    index = len(word2idx)
-    with open(file_path, encoding='utf8') as fin:
-        for line in fin:
-            words = line.split(' ')
-            for word in words:
-                if index >= max_vocab:
-                    return word2idx
-                if word not in word2idx:
-                    word2idx[word] = index
-                    index += 1
-    return word2idx
-
-
-def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
-    dada = []
-    with open(file_src, encoding='utf8') as fin_src, \
-            open(file_tgt, encoding='utf8') as fin_tgt:
-        for line_src, line_tgt in zip(fin_src, fin_tgt):
-
-            sample_src = ['<s>'] + line_src.split() + ['</s>']
-            sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
-
-            sample_src_idx = [vcb_src.get(t, vcb_src.get('<unk>')) for t in sample_src]
-            sample_tgt_idx = [vcb_tgt.get(t, vcb_tgt.get('<unk>')) for t in sample_tgt]
-
-            dada.append(
-                (torch.tensor(sample_src_idx, dtype=torch.long),
-                 torch.tensor(sample_tgt_idx, dtype=torch.long))
-            )
-    return dada
 
 
 class RandomSampler(Sampler):
@@ -122,6 +89,40 @@ def generate_batch(data_batch):
     return src_batch, tgt_batch
 
 
+def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
+    dada = []
+    with open(file_src, encoding='utf8') as fin_src, \
+            open(file_tgt, encoding='utf8') as fin_tgt:
+        for line_src, line_tgt in zip(fin_src, fin_tgt):
+
+            sample_src = ['<s>'] + line_src.split() + ['</s>']
+            sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
+
+            sample_src_idx = [vcb_src.get(t, vcb_src.get('<unk>')) for t in sample_src]
+            sample_tgt_idx = [vcb_tgt.get(t, vcb_tgt.get('<unk>')) for t in sample_tgt]
+
+            dada.append(
+                (torch.tensor(sample_src_idx, dtype=torch.long),
+                 torch.tensor(sample_tgt_idx, dtype=torch.long))
+            )
+    return dada
+
+
+def create_vocab(file_path, max_vocab):
+    word2idx = {'<pad>': 0, '<unk>': 1, '<s>': 2, '</s>': 3}
+    index = len(word2idx)
+    with open(file_path, encoding='utf8') as fin:
+        for line in fin:
+            words = line.split(' ')
+            for word in words:
+                if index >= max_vocab:
+                    return word2idx
+                if word not in word2idx:
+                    word2idx[word] = index
+                    index += 1
+    return word2idx
+
+
 src_file = '../data/wmt/WMT-News.de-en.de'
 tgt_file = '../data/wmt/WMT-News.de-en.en'
 max_vocab = 100000
@@ -134,7 +135,6 @@ EOS_IDX = src_vcb.get('</s>')
 BATCH_SIZE = 16
 EPOCHS = 10
 PATIENCE = 100
-
 train_list = load_data(src_file, tgt_file, src_vcb, tgt_vcb)
 sampler = RandomSampler(train_list, batch_size=4096)
 batch_sampler = BatchSampler(sampler, batch_size=4096, drop_last=True)
