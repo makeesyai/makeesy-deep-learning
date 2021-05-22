@@ -1,8 +1,8 @@
 import random
 import torch
 from torch.nn.utils.rnn import pad_sequence
-from torch.utils.data import DataLoader, IterableDataset
-from torch.utils.data.sampler import Sampler, T_co
+from torch.utils.data import DataLoader
+from torch.utils.data.sampler import Sampler
 
 max_src_in_batch, max_tgt_in_batch = 0, 0
 
