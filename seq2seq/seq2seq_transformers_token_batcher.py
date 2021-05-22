@@ -6,9 +6,8 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import Sampler
 
+from seq2seq.model_transformers import Seq2SeqTransformer
 from seq2seq.model_utils import save_model
-from seq2seq.seq2seq_transformer import MyTransformer
-from seq2seq.seq2seq_transformer_spm import create_mask
 
 max_src_in_batch, max_tgt_in_batch = 0, 0
 
@@ -18,6 +17,7 @@ class RandomSampler(Sampler):
     Arguments:
         data_source (Dataset): dataset to sample from
     """
+
     def __init__(self, data, batch_size, bucket_size=8):
         super().__init__(data)
         self.data = data
@@ -100,7 +100,6 @@ def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
     with open(file_src, encoding='utf8') as fin_src, \
             open(file_tgt, encoding='utf8') as fin_tgt:
         for line_src, line_tgt in zip(fin_src, fin_tgt):
-
             sample_src = ['<s>'] + line_src.split() + ['</s>']
             sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
 
@@ -129,17 +128,36 @@ def create_vocab(file_path, max_vocab):
     return word2idx
 
 
+def generate_square_subsequent_mask(sz):
+    mask = (torch.triu(torch.ones((sz, sz), device=DEVICE)) == 1).transpose(0, 1)
+    mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
+    return mask
+
+
+def create_mask(src, tgt):
+    src_seq_len = src.shape[0]
+    tgt_seq_len = tgt.shape[0]
+
+    tgt_mask = generate_square_subsequent_mask(tgt_seq_len)
+    src_mask = torch.zeros((src_seq_len, src_seq_len), device=DEVICE).type(torch.bool)
+
+    src_padding_mask = (src == PAD_IDX).transpose(0, 1)
+    tgt_padding_mask = (tgt == PAD_IDX).transpose(0, 1)
+
+    return src_mask, tgt_mask, src_padding_mask, tgt_padding_mask
+
+
 src_file = '../data/wmt/WMT-News.de-en.de'
 tgt_file = '../data/wmt/WMT-News.de-en.en'
 max_vocab = 100000
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 src_vcb = create_vocab(src_file, max_vocab)
 tgt_vcb = create_vocab(tgt_file, max_vocab)
 PAD_IDX = src_vcb.get('<pad>')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
 
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 EPOCHS = 10
 PATIENCE = 100
 train_data = load_data(src_file, tgt_file, src_vcb, tgt_vcb)
@@ -150,12 +168,12 @@ train_iter = DataLoader(train_data,
                         batch_sampler=batch_sampler,
                         collate_fn=generate_batch)
 
-model = MyTransformer(len(src_vcb), len(tgt_vcb))
-model.to(device)
+model = Seq2SeqTransformer(len(src_vcb), len(tgt_vcb))
+model.to(DEVICE)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters())
-model_file='pytorch_model.bin'
+model_file = 'pytorch_model.bin'
 
 train = True
 if train:
@@ -163,13 +181,11 @@ if train:
     total_loss = 0
     for epoch in range(EPOCHS):
         for idx, (src, tgt) in enumerate(train_iter):
-            src = src.to(device)
-            tgt = tgt.to(device)
-
+            print(src.shape, tgt.shape)
+            src = src.to(DEVICE)
+            tgt = tgt.to(DEVICE)
             tgt_input = tgt[:-1, :]
-
-            src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = \
-                create_mask(src, tgt_input)
+            src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = create_mask(src, tgt_input)
 
             logits = model(src, tgt_input, src_mask, tgt_mask,
                            src_padding_mask, tgt_padding_mask, src_padding_mask)
@@ -177,7 +193,7 @@ if train:
             tgt_out = tgt[1:, :]
 
             if steps > 0 and steps % PATIENCE == 0:
-                print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
+                print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss / PATIENCE}')
                 total_loss = 0
 
                 # Save the model
@@ -204,13 +220,17 @@ count = 0
 with torch.no_grad():
     model.eval()
     for idx, (src, tgt) in enumerate(train_iter):
-        src = src.to(device)
-        tgt = tgt.to(device)
+        src = src.to(DEVICE)
+        tgt = tgt.to(DEVICE)
+        num_tokens = src.size(0)
+        src_mask = (torch.zeros(num_tokens, num_tokens)).type(torch.bool).to(DEVICE)
 
-        memory = model.encode(src)
+        memory = model.encode(src, src_mask)
         ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
         for i in range(100):
-            out = model.decode(ys, memory)
+            tgt_mask = (generate_square_subsequent_mask(ys.size(0))
+                        .type(torch.bool)).to(DEVICE)
+            out = model.decode(ys, memory, tgt_mask)
             out = out.transpose(0, 1)
             prob = model.generator(out[:, -1])
             _, next_word = torch.max(prob, dim=-1)
