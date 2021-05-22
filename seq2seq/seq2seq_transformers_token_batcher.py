@@ -12,7 +12,7 @@ from seq2seq.model_utils import save_model
 max_src_in_batch, max_tgt_in_batch = 0, 0
 
 
-class RandomSampler(Sampler):
+class BatchSampler(Sampler):
     r"""Samples elements randomly, without replacement.
     Arguments:
         data_source (Dataset): dataset to sample from
@@ -63,26 +63,6 @@ class RandomSampler(Sampler):
 
     def __len__(self):
         return len(self.data)
-
-
-class BatchSampler(Sampler):
-    def __init__(self, sampler, batch_size, drop_last):
-        super().__init__(sampler)
-        self.sampler = sampler
-        self.batch_size = batch_size
-        self.drop_last = drop_last
-
-    def __iter__(self):
-        batch = []
-        for _, idx in enumerate(iter(self.sampler)):
-            batch = idx
-            yield batch
-
-        if len(batch) > 0 and not self.drop_last:
-            yield batch
-
-    def __len__(self):
-        return len(self.sampler) // self.batch_size
 
 
 def generate_batch(data_batch):
@@ -162,8 +142,7 @@ EPOCHS = 10
 PATIENCE = 100
 train_data = load_data(src_file, tgt_file, src_vcb, tgt_vcb)
 
-sampler = RandomSampler(train_data, batch_size=BATCH_SIZE)
-batch_sampler = BatchSampler(sampler, batch_size=BATCH_SIZE, drop_last=True)
+batch_sampler = BatchSampler(train_data, batch_size=BATCH_SIZE)
 
 train_iter = DataLoader(train_data,
                         batch_sampler=batch_sampler,
