@@ -6,6 +6,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import Sampler
 
+from seq2seq.model_utils import save_model
 from seq2seq.seq2seq_transformer import MyTransformer
 
 max_src_in_batch, max_tgt_in_batch = 0, 0
@@ -153,6 +154,7 @@ model.to(device)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = Adam(model.parameters())
+model_file='pytorch_model.bin'
 
 train = True
 if train:
@@ -170,6 +172,10 @@ if train:
             if steps > 0 and steps % PATIENCE == 0:
                 print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
                 total_loss = 0
+
+                # Save the model
+                save_model(model, model_file)
+
                 # print(logits.argmax(-1).view(-1).tolist())
                 # print(tgt_out.transpose(0, 1))
 
@@ -179,6 +185,9 @@ if train:
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
+
+            # Save the model
+            save_model(model, model_file)
 
 train_iter = DataLoader(train_data,
                         batch_sampler=batch_sampler,
