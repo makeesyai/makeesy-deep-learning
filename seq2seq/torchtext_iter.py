@@ -45,12 +45,13 @@ class BatchSampler(Sampler):
         # yield indices for current batch
         j = 0
         for i in range(0, len(pooled_indices)):
-            sofor = self.batch_size_fn(pooled_indices[i], j)
-            if sofor < self.batch_size:
+            so_for = self.batch_size_fn(pooled_indices[i], j)
+            if so_for < self.batch_size:
                 j += 1
                 continue
             # Get the start index of the batch
             start = i - j
+            # Get the end index of the batch
             end = j
             j = 0
             yield pooled_indices_only[start:start + end]
