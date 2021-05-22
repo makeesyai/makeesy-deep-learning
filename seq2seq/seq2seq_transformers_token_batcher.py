@@ -149,7 +149,7 @@ def create_mask(src, tgt):
 
 src_file = '../data/wmt/WMT-News.de-en.de'
 tgt_file = '../data/wmt/WMT-News.de-en.en'
-max_vocab = 100000
+max_vocab = 20000
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 src_vcb = create_vocab(src_file, max_vocab)
 tgt_vcb = create_vocab(tgt_file, max_vocab)
@@ -157,10 +157,11 @@ PAD_IDX = src_vcb.get('<pad>')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
 
-BATCH_SIZE = 32
+BATCH_SIZE = 256
 EPOCHS = 10
 PATIENCE = 100
 train_data = load_data(src_file, tgt_file, src_vcb, tgt_vcb)
+
 sampler = RandomSampler(train_data, batch_size=BATCH_SIZE)
 batch_sampler = BatchSampler(sampler, batch_size=BATCH_SIZE, drop_last=True)
 
@@ -211,10 +212,6 @@ if train:
 
             # Save the model
             save_model(model, model_file)
-
-train_iter = DataLoader(train_data,
-                        batch_sampler=batch_sampler,
-                        collate_fn=generate_batch)
 
 count = 0
 with torch.no_grad():
