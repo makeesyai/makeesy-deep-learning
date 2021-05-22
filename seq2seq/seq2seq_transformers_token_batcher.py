@@ -149,7 +149,7 @@ def create_mask(src, tgt):
 
 src_file = '../data/wmt/WMT-News.de-en.de'
 tgt_file = '../data/wmt/WMT-News.de-en.en'
-max_vocab = 20000
+max_vocab = 30000
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 src_vcb = create_vocab(src_file, max_vocab)
 tgt_vcb = create_vocab(tgt_file, max_vocab)
@@ -157,7 +157,7 @@ PAD_IDX = src_vcb.get('<pad>')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
 
-BATCH_SIZE = 256
+BATCH_SIZE = 1024
 EPOCHS = 10
 PATIENCE = 100
 train_data = load_data(src_file, tgt_file, src_vcb, tgt_vcb)
@@ -182,7 +182,6 @@ if train:
     total_loss = 0
     for epoch in range(EPOCHS):
         for idx, (src, tgt) in enumerate(train_iter):
-            print(src.shape, tgt.shape)
             src = src.to(DEVICE)
             tgt = tgt.to(DEVICE)
             tgt_input = tgt[:-1, :]
@@ -210,8 +209,8 @@ if train:
             optimizer.step()
             total_loss += loss.item()
 
-            # Save the model
-            save_model(model, model_file)
+        # Save the model
+        save_model(model, model_file)
 
 count = 0
 with torch.no_grad():
