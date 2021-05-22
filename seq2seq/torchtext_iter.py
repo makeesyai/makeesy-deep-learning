@@ -59,26 +59,6 @@ class BatchSampler(Sampler):
         return len(self.data)
 
 
-class BatcherDefault(Sampler):
-    def __init__(self, sampler, batch_size, drop_last):
-        super().__init__(sampler)
-        self.sampler = sampler
-        self.batch_size = batch_size
-        self.drop_last = drop_last
-
-    def __iter__(self):
-        batch = []
-        for _, idx in enumerate(iter(self.sampler)):
-            batch = idx
-            yield batch
-
-        if len(batch) > 0 and not self.drop_last:
-            yield batch
-
-    def __len__(self):
-        return len(self.sampler) // self.batch_size
-
-
 def generate_batch(data_batch):
     src_batch, tgt_batch = [], []
     for (src_item, tgt_item) in data_batch:
