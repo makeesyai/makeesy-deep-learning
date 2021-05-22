@@ -145,4 +145,3 @@ bucket_dataloader = DataLoader(train_list,
 
 for batch in bucket_dataloader:
     print(batch[0].shape, batch[1].shape)
-    # exit()
