@@ -157,7 +157,7 @@ PAD_IDX = src_vcb.get('<pad>')
 BOS_IDX = src_vcb.get('<s>')
 EOS_IDX = src_vcb.get('</s>')
 
-BATCH_SIZE = 512
+BATCH_SIZE = 256
 EPOCHS = 10
 PATIENCE = 100
 train_data = load_data(src_file, tgt_file, src_vcb, tgt_vcb)
