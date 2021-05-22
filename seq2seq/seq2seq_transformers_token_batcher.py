@@ -8,6 +8,7 @@ from torch.utils.data.sampler import Sampler
 
 from seq2seq.model_utils import save_model
 from seq2seq.seq2seq_transformer import MyTransformer
+from seq2seq.seq2seq_transformer_spm import create_mask
 
 max_src_in_batch, max_tgt_in_batch = 0, 0
 
@@ -166,7 +167,13 @@ if train:
             tgt = tgt.to(device)
 
             tgt_input = tgt[:-1, :]
-            logits = model(src, tgt_input)
+
+            src_mask, tgt_mask, src_padding_mask, tgt_padding_mask = \
+                create_mask(src, tgt_input)
+
+            logits = model(src, tgt_input, src_mask, tgt_mask,
+                           src_padding_mask, tgt_padding_mask, src_padding_mask)
+
             tgt_out = tgt[1:, :]
 
             if steps > 0 and steps % PATIENCE == 0:
