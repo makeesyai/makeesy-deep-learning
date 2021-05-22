@@ -7,7 +7,7 @@ from torch.utils.data.sampler import Sampler
 max_src_in_batch, max_tgt_in_batch = 0, 0
 
 
-class RandomSampler(Sampler):
+class BatchSampler(Sampler):
     r"""Samples elements randomly, without replacement.
     Arguments:
         data_source (Dataset): dataset to sample from
@@ -59,7 +59,7 @@ class RandomSampler(Sampler):
         return len(self.data)
 
 
-class BatchSampler(Sampler):
+class BatcherDefault(Sampler):
     def __init__(self, sampler, batch_size, drop_last):
         super().__init__(sampler)
         self.sampler = sampler
@@ -136,8 +136,7 @@ BATCH_SIZE = 16
 EPOCHS = 10
 PATIENCE = 100
 train_list = load_data(src_file, tgt_file, src_vcb, tgt_vcb)
-sampler = RandomSampler(train_list, batch_size=4096)
-batch_sampler = BatchSampler(sampler, batch_size=4096, drop_last=True)
+batch_sampler = BatchSampler(train_list, batch_size=4096)
 
 bucket_dataloader = DataLoader(train_list,
                                batch_sampler=batch_sampler,
