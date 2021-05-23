@@ -32,7 +32,6 @@ print(x.shape)
 x = torch.tensor([[1, 2, 3, 4],
                   [5, 6, 7, 8]])
 print(x.shape)
-x = x.t()
 x = x.view(1, 8)
 print(x.shape)
 print(x.is_contiguous())
