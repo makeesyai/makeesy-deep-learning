@@ -230,6 +230,9 @@ if __name__ == '__main__':
                 optimizer.zero_grad()
                 loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
                 loss.backward()
+                # for name, p in model.named_parameters():
+                #     print(name)
+                #     print(p.grad)
                 optimizer.step()
                 total_loss += loss.item()
 
