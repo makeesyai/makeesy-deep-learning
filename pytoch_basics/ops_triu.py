@@ -1,7 +1,7 @@
 # Returns the upper triangular part of a matrix (2-D tensor)
 
 # torch.triu(input, diagonal=0, *, out=None) → Tensor
-# The argument diagonal controls which diagonal to consider.
+# The argument 'diagonal' controls which diagonal to consider.
 
 import torch
 
