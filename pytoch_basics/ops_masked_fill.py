@@ -1,4 +1,4 @@
-# Fills elements of self tensor with value where mask is True.
+# Fills elements of the tensor with value where mask is True.
 # Tensor.masked_fill_(mask, value)
 
 import torch
