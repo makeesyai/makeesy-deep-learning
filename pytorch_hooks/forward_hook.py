@@ -2,11 +2,12 @@
 # register_forward_hook(hook)
 import torch
 from torch import nn
+from torch.nn.utils import prune
 
 
 class ModelNet(nn.Module):
     def __init__(self, input_size,
-                 num_hidden_layers=3,
+                 num_hidden_layers=1,
                  hidden_layer_size=512,
                  num_labels=2,
                  ):
@@ -54,3 +55,15 @@ print(out.size())
 print(len(save_output.outputs))
 for i in range(len(save_output.outputs)):
     print(save_output.outputs[i].shape)
+
+
+# Understanding Pruning
+module = model.model
+print(list(module.named_parameters()))
+print(list(module.named_buffers()))
+prune.random_unstructured(module[0], name="weight", amount=0.3)
+prune.random_unstructured(module[0], name="bias", amount=0.3)
+print(list(module.named_parameters()))
+print(list(module.named_buffers()))
+print(module[0].weight)
+print(module[0]._forward_pre_hooks)
