@@ -13,10 +13,11 @@ class NeuralNet(nn.Module):
         self.flatten = nn.Flatten()
 
     def forward(self, x):
-        return self.flatten(x)
+        tensor = self.flatten(x)
+        return tensor
 
 
-x = torch.rand(2, 2, 2)
+x = torch.rand(2, 2, 2, 2, 2, 2)
 print(x)
 model = NeuralNet()
 output = model(x)
