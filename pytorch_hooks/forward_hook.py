@@ -37,33 +37,33 @@ class SaveOutput:
         self.outputs = []
 
 
-x = torch.rand(16, 128)
-print(x)
-input_size = x.shape[1]
-model = ModelNet(input_size=input_size)
+if __name__ == '__main__':
+    x = torch.rand(16, 128)
+    print(x)
+    input_size = x.shape[1]
+    model = ModelNet(input_size=input_size)
 
-save_output = SaveOutput()
-hook_handles = []
-for layer in model.modules():
-    if isinstance(layer, torch.nn.modules.Linear) or \
-            isinstance(layer, torch.nn.modules.ReLU):
-        handle = layer.register_forward_hook(save_output)
-        hook_handles.append(handle)
+    save_output = SaveOutput()
+    hook_handles = []
+    for layer in model.modules():
+        if isinstance(layer, torch.nn.modules.Linear) or \
+                isinstance(layer, torch.nn.modules.ReLU):
+            handle = layer.register_forward_hook(save_output)
+            hook_handles.append(handle)
 
-out = model(x)
-print(out.size())
-print(len(save_output.outputs))
-for i in range(len(save_output.outputs)):
-    print(save_output.outputs[i].shape)
+    out = model(x)
+    print(out.size())
+    print(len(save_output.outputs))
+    for i in range(len(save_output.outputs)):
+        print(save_output.outputs[i].shape)
 
-
-# Understanding Pruning
-module = model.model
-print(list(module.named_parameters()))
-print(list(module.named_buffers()))
-prune.random_unstructured(module[0], name="weight", amount=0.3)
-prune.random_unstructured(module[0], name="bias", amount=0.3)
-print(list(module.named_parameters()))
-print(list(module.named_buffers()))
-print(module[0].weight)
-print(module[0]._forward_pre_hooks)
+    # Understanding Pruning
+    module = model.model
+    print(list(module.named_parameters()))
+    print(list(module.named_buffers()))
+    prune.random_unstructured(module[0], name="weight", amount=0.3)
+    prune.random_unstructured(module[0], name="bias", amount=0.3)
+    print(list(module.named_parameters()))
+    print(list(module.named_buffers()))
+    print(module[0].weight)
+    print(module[0]._forward_pre_hooks)
