@@ -4,10 +4,10 @@ import torch
 from torch import nn
 from torch.nn.utils import prune
 
-from pytorch_hooks.forward_hook import ModelNet
+from pytorch_hooks.model import ModelNet
 
 
-class PruneLinearLayer(object):
+class PruneLinearLayer:
     def __init__(self, param_names, amount):
         self.param_names = param_names
         self.amount = amount
