@@ -1,6 +1,7 @@
+# torch.matmul() multi-dimensional tensor
 import torch
 
-x = torch.arange(6).view(2, 3)
+x = torch.arange(24).view(2, 2, 2, 3)
 y = torch.arange(6).view(3, 2)
 print(x)
 print(y)
