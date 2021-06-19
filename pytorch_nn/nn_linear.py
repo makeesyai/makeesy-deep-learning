@@ -15,8 +15,8 @@ class NeuralNet(nn.Module):
     def __init__(self, input_size, output_size):
         super(NeuralNet, self).__init__()
         self.ff = nn.Linear(input_size, output_size)
-        print(self.ff.weight.shape)
-        print(self.ff.bias.shape)
+        print(self.ff.weight.shape)  # Shape: output_size X input_size
+        print(self.ff.bias.shape)  # Shape: output_size
 
     def forward(self, inputs):
         pass
