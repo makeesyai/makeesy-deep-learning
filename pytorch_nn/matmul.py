@@ -2,7 +2,7 @@
 import torch
 
 x = torch.arange(24).view(2, 2, 2, 3)
-y = torch.arange(6).view(3, 2)
+y = torch.arange(12).view(2, 3, 2)
 print(x)
 print(y)
 
