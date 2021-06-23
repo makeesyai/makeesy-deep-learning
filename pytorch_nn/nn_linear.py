@@ -10,23 +10,20 @@
 # Output: (N, *, H_out) where H_out = =out_features.
 import torch
 from torch import nn
-from torch.nn import functional as F
 
 
 class NeuralNet(nn.Module):
     def __init__(self, input_size, output_size):
         super(NeuralNet, self).__init__()
-        self.ff = nn.Linear(input_size, output_size)
-        # print(self.ff.weight.shape)  # Shape: output_size X input_size
-        # print(self.ff.bias.shape)  # Shape: output_size
+        self.nn = nn.Linear(input_size, output_size)
+        # print(self.nn.weight)  # Shape 2x16
+        # print(self.nn.bias)  # shape: 2
 
     def forward(self, inputs):
-        logits = self.ff(inputs)
-        return logits, F.softmax(logits, dim=-1)
+        return self.nn(inputs)
 
 
-model = NeuralNet(16, 2)
 x = torch.rand(4, 16)
-output, prob = model(x)
-print(prob)
-print(prob.argmax(dim=-1))
+model = NeuralNet(16, 2)
+output = model(x)
+print(output)
