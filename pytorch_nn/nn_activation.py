@@ -4,7 +4,7 @@
 # restrict them to a range {0, 1} or {-1, 1} etc.
 # 3. Control the information flow in the network
 
-# Commonly used: Sigmoid, Tanh, ReLU, LeakyReLU/PReLU
+# Commonly used: Sigmoid, Tanh, ReLU, LeakyReLU/PReLU, ELU
 
 import torch
 from torch import nn
@@ -16,6 +16,7 @@ m = nn.Sigmoid()
 # m = nn.ReLU()
 # m = nn.LeakyReLU()
 # m = nn.PReLU()
+# m = nn.ELU()
 
 y = m(x)
 plt.plot(x.numpy(), y.detach().squeeze().numpy())
