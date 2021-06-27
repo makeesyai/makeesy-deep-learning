@@ -16,11 +16,14 @@ class NeuralNet(nn.Module):
     def __init__(self, input_size, output_size):
         super(NeuralNet, self).__init__()
         self.nn = nn.Linear(input_size, output_size)
+        self.sigmoid = nn.Sigmoid()
         # print(self.nn.weight)  # Shape 2x16
         # print(self.nn.bias)  # shape: 2
 
     def forward(self, inputs):
-        return self.nn(inputs)
+        tensor = self.nn(inputs)
+        tensor = self.sigmoid(tensor)
+        return tensor
 
 
 x = torch.rand(4, 16)
