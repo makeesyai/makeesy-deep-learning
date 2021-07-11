@@ -14,7 +14,7 @@ class NeuralNet(nn.Module):
         self.deep_nn = nn.Sequential()
         for i in range(num_hidden_layers):
             self.deep_nn.add_module(f'ff{i}', nn.Linear(input_size, hidden_layer_size))
-            self.deep_nn.add_module(f'activation', nn.ReLU())
+            self.deep_nn.add_module(f'activation{i}', nn.ReLU())
             input_size = hidden_layer_size
         self.deep_nn.add_module(f'classifier', nn.Linear(hidden_layer_size, output_size))
 
