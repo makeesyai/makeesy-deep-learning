@@ -14,19 +14,21 @@ class NeuralNet(nn.Module):
                  hidden_layer_size=128,
                  ):
         super(NeuralNet, self).__init__()
+        self.activation = nn.ReLU()
         self.deep_nn = nn.ParameterList()
         for i in range(num_hidden_layers):
             self.deep_nn.append(nn.Parameter(torch.rand(input_size, hidden_layer_size)))
             input_size = hidden_layer_size
-            self.deep_nn.add_module('act', nn.ReLU())
         self.deep_nn.append(nn.Parameter(torch.rand(hidden_layer_size, output_size)))
 
     def forward(self, inputs):
         hidden_states = []
-        for layer in self.deep_nn:
+        for idx, layer in enumerate(self.deep_nn):
             tensor = inputs.mm(layer)
-            inputs = tensor
+            if idx != len(self.deep_nn) - 1:
+                tensor = self.activation(tensor)
             hidden_states.append(tensor)
+            inputs = tensor
         return hidden_states[-1], hidden_states
 
 
