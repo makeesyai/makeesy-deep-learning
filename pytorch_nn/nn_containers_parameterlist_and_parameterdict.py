@@ -6,6 +6,7 @@
 # ParameterDict: Holds parameters in a dictionary.
 import torch
 from torch import nn
+from torch.nn import functional as F
 
 
 class NeuralNet(nn.Module):
@@ -17,14 +18,15 @@ class NeuralNet(nn.Module):
         self.activation = nn.ReLU()
         self.deep_nn = nn.ParameterList()
         for i in range(num_hidden_layers):
-            self.deep_nn.append(nn.Parameter(torch.rand(input_size, hidden_layer_size)))
+            self.deep_nn.append(nn.Parameter(torch.rand(hidden_layer_size, input_size)))
             input_size = hidden_layer_size
-        self.deep_nn.append(nn.Parameter(torch.rand(hidden_layer_size, output_size)))
+        self.deep_nn.append(nn.Parameter(torch.rand(output_size, hidden_layer_size)))
 
     def forward(self, inputs):
         hidden_states = []
         for idx, layer in enumerate(self.deep_nn):
-            tensor = inputs.mm(layer)
+            # Linear: `y = xA^T + b`
+            tensor = F.linear(inputs, layer)
             if idx != len(self.deep_nn) - 1:
                 tensor = self.activation(tensor)
             hidden_states.append(tensor)
