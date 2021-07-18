@@ -20,7 +20,7 @@ class NeuralNet(nn.Module):
         for i in range(num_hidden_layers):
             self.deep_nn.append(nn.Parameter(torch.rand(hidden_layer_size, input_size)))
             input_size = hidden_layer_size
-        self.deep_nn.append(nn.Parameter(torch.rand(output_size, hidden_layer_size)))
+        self.deep_nn.append(nn.Parameter(torch.rand(output_size, input_size)))
 
     def forward(self, inputs):
         hidden_states = []
