@@ -5,7 +5,7 @@
 # ParameterList: Holds parameters in a list.
 # ParameterDict: Holds parameters in a dictionary.
 import torch
-from torch import nn, masked_fill
+from torch import nn
 from torch.nn import functional as F
 
 
