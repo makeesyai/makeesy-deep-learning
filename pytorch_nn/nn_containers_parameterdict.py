@@ -15,8 +15,8 @@ class NeuralNet(nn.Module):
                  ):
         super(NeuralNet, self).__init__()
         self.deep_nn = nn.ParameterDict({
-            'class_1': nn.Parameter(torch.rand(hidden_layer_size, input_size)),
-            'class_2': nn.Parameter(torch.rand(hidden_layer_size, input_size))
+            'left': nn.Parameter(torch.rand(hidden_layer_size, input_size)),
+            'right': nn.Parameter(torch.rand(hidden_layer_size, input_size))
         })
         self.classify = nn.Parameter(torch.rand(output_size, hidden_layer_size))
 
@@ -26,11 +26,11 @@ class NeuralNet(nn.Module):
 
 model = NeuralNet(16, 2)
 
-x_class1 = torch.rand(4, 16)
-output_class1 = model(x_class1, 'class_1')
+x_left = torch.rand(4, 16)
+output_left = model(x_left, 'left')
 
-x_class2 = torch.rand(4, 16)
-output_class2 = model(x_class2, 'class_2')
+x_right = torch.rand(4, 16)
+output_right = model(x_right, 'right')
 
-print(output_class1)
-print(output_class2)
+print(output_left)
+print(output_right)
