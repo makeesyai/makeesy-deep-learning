@@ -1,4 +1,6 @@
-# Loss functions
+# Loss functions:
+# Loss functions are used to measure the error between the predicted values vs the provided target
+
 # 1. Regression: used when the model is predicting a continuous value, e.g. house price
 # 2. Classification: used when the model is predicting a discrete value, e.g. spam detection
 # 3. Ranking: used when the model is predicting the relative distances between inputs, e.g. Information retrieval
