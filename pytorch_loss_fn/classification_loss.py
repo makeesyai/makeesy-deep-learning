@@ -4,7 +4,7 @@
 
 # Conceptually negative log likelihood and cross entropy are the same.
 
-# 1. Used with a model having softmax as the lass layer.
+# 1. Used with a model having softmax as the lass layer for Multi-class classification problems.
 # 2. As the output of softmax layer is between 0, and 1, and the log will be negative.
 # So the negative sign is mainly to make the end loss positive (which we minimize eventually in training process).
 # 3. Not only make the model to predict correctly but also with high confidence.
