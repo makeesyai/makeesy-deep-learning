@@ -13,22 +13,28 @@
 # loss(x, y) = (x - y)^2 where x represents the actual value and y the predicted value.
 
 import torch
-import torch.nn as nn
+from torch import nn
 
-pred_target = torch.randn(2, requires_grad=True)
+predicted_target = torch.randn(2, requires_grad=True)
 target = torch.randn(2)
-mae_loss = nn.L1Loss()
-mse_loss = nn.MSELoss()
-output_mae = mae_loss(pred_target, target)
-output_mse = mse_loss(pred_target, target)
-output_mae.backward()
-output_mse.backward()
+mae_loss = abs(target - predicted_target).sum() / target.shape[0]
+mse_loss = pow(target - predicted_target, 2).sum()/target.shape[0]
 
-print('input: ', pred_target)
-print('target: ', target)
-print('output: ', output_mae)
-print(abs(pred_target - target).sum()/target.shape[0])
+l1_loss = nn.L1Loss()
+l2_loss = nn.MSELoss()
 
-print('output: ', output_mse)
-print(pow(pred_target - target, 2).sum()/target.shape[0])
+mae_output = l1_loss(predicted_target, target)
+mse_output = l2_loss(predicted_target, target)
+
+mae_output.backward()
+mse_output.backward()
+
+
+print(mae_loss)
+print(mae_output)
+
+print(mse_loss)
+print(mse_output)
+
+
 
