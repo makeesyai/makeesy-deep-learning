@@ -38,3 +38,5 @@ for epoch in range(500):
     loss.backward()
     print(loss)
     optimizer.step()
+    print(model[0].grad)
+    print(model[1].grad)
