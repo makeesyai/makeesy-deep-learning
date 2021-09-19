@@ -1,9 +1,15 @@
 # SGD: Stochastic Gradient Descent
+# Useful links
+# https://ruder.io/optimizing-gradient-descent/
+# https://towardsdatascience.com/understanding-pytorch-with-an-example-a-step-by-step-tutorial-81fc5f8c4e8e
+
 # STEPS
 # 1. Compute Loss
 # 2. Compute Partial Derivatives
 # 3. Update the Parameters
 # 4. Repeat 1-3 until convergence
+
+
 import torch
 from torch.nn import MSELoss, Parameter, ParameterList
 
