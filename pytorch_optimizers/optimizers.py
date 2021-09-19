@@ -11,7 +11,7 @@
 
 
 import torch
-from torch.nn import MSELoss, Parameter, ParameterList
+from torch.nn import MSELoss, Parameter
 
 x_train = torch.tensor([1, 2, 3, 4])
 y_train = torch.tensor([11, 12, 13, 14], dtype=torch.float)
