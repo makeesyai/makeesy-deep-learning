@@ -13,6 +13,7 @@
 import torch
 from torch.nn import MSELoss, Parameter
 
+# The data function is: y = x + 10
 x_train = torch.tensor([1, 2, 3, 4])
 y_train = torch.tensor([11, 12, 13, 14], dtype=torch.float)
 
