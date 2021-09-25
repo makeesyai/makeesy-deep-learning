@@ -23,7 +23,7 @@ a = torch.randn(1, requires_grad=True, dtype=torch.float)
 b = torch.randn(1, requires_grad=True, dtype=torch.float)
 lr = 0.1
 # If we use nn.Module to create a model, it will model.parameters()
-model = [Parameter(a), Parameter(b)]
+model = [Parameter(a.detach().clone()), Parameter(b.detach().clone())]
 
 criterion = MSELoss()
 optimizer = torch.optim.SGD(model, lr=lr)
