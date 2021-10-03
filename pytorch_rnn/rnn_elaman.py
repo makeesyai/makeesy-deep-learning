@@ -1,6 +1,9 @@
 # Elman RNN
 """
-Math: h_t = \tanh(W_{ih} x_t + b_{ih} + W_{hh} h_{(t-1)} + b_{hh})
+Math:
+a_t = \tanh(W_{ax} X_t + b_{ax} + W_{aa} a_{(t-1)} + b_{aa})
+# Summary: Two linear layers + an activation layer (tanh/Relu)
+# Note: The weights are shared for all time steps
 """
 
 
@@ -17,18 +20,18 @@ class ElmanRNN(nn.Module):
         return self.rnn(inp, hidden)
 
 
-input_size = 2
+feature_size = 2
 seq_length = 5
 batch_size = 4
 
 hidden_size = 3
 num_layers = 1
 
-model = ElmanRNN(input_size, hidden_size, num_layers)
+model = ElmanRNN(feature_size, hidden_size, num_layers)
 
 # (bs, seq-len/tokens, feature) if batch_first=True, otherwise (seq-len/tokens, bs, feature)
 # For example input=['he is handsome', 'she is beautiful']
-x = torch.randn(batch_size, seq_length, input_size)
+x = torch.randn(batch_size, seq_length, feature_size)
 
 # print(list(model.named_parameters()))
 hidden = torch.zeros(num_layers, batch_size, hidden_size)  # n_layers x bs x hidden_size
