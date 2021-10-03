@@ -1,7 +1,7 @@
 # Elman RNN
 """
 Math:
-a_t = \tanh(W_{ax} X_t + b_{ax} + W_{aa} a_{(t-1)} + b_{aa})
+h_t = \tanh(W_{ih} x_t + b_{ih} + W_{hh} h_{(t-1)} + b_{hh})
 # Summary: Two linear layers + an activation layer (tanh/Relu)
 # Note: The weights are shared for all time steps
 """
@@ -34,6 +34,7 @@ model = ElmanRNN(feature_size, rnn_hidden_size, rnn_num_layers)
 x = torch.randn(batch_size, seq_length, feature_size)
 
 # print(list(model.named_parameters()))
+
 hidden = torch.zeros(rnn_num_layers, batch_size, rnn_hidden_size)  # n_layers x bs x hidden_size
 model_output, hidden = model(x, hidden)
 # model_output: bs x seq x hidden_size, hidden: n_layers x bs x hidden_size
