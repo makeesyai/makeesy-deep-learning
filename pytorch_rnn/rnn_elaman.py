@@ -1,4 +1,4 @@
-# Elman RNN
+# Basic RNN/Vanilla RNN/Elman RNN
 """
 Math:
 h_t = \tanh(W_{ih} x_t + b_{ih} + W_{hh} h_{(t-1)} + b_{hh})
