@@ -30,7 +30,7 @@ seq_length = 5
 batch_size = 4
 
 rnn_hidden_size = 3
-rnn_num_layers = 2
+rnn_num_layers = 1
 
 model = MyLSTM(feature_size, rnn_hidden_size, rnn_num_layers)
 
@@ -38,11 +38,12 @@ model = MyLSTM(feature_size, rnn_hidden_size, rnn_num_layers)
 # For example input=['he is handsome', 'she is beautiful']
 x = torch.randn(batch_size, seq_length, feature_size)
 
-# print(list(model.named_parameters()))
+# xt = x.transpose(1, 2)
+# print(torch.matmul(model.rnn.weight_ih_l0, xt))
 
-hidden = torch.zeros(rnn_num_layers, batch_size, rnn_hidden_size)  # n_layers x bs x hidden_size
-model_output, hidden = model(x, (hidden, hidden))
+# hidden = torch.zeros(rnn_num_layers, batch_size, rnn_hidden_size)  # n_layers x bs x hidden_size
+# model_output, hidden = model(x, (hidden, hidden))
 # model_output: bs x seq x hidden_size, ht, ct: n_layers x bs x hidden_size
 
-print(model_output)
-print(hidden[0].shape, hidden[1].shape)  # ht, ct
+# print(model_output)
+# print(hidden[0].shape, hidden[1].shape)  # ht, ct
