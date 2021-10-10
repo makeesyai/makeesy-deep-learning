@@ -21,8 +21,8 @@ class ElmanRNN(nn.Module):
 
 
 feature_size = 2
-seq_length = 5
-batch_size = 4
+seq_length = 3
+batch_size = 2
 
 rnn_hidden_size = 3
 rnn_num_layers = 1
