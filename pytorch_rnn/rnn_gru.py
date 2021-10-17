@@ -10,6 +10,7 @@ h_t = (1 - z_t) * n_t + z_t * h_{(t-1)}
 2. Only 2 gates, Update and Reset gates
 3. Reset Gate: Input Gate and the Forget Gate of LSTM
 4. Update Gate: Output Gate of LSTM
+5. n_t: New Gate, Current Memory Gate, Intermediate memory, Candidate Hidden State etc.
 """
 
 
