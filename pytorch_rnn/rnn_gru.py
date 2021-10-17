@@ -8,6 +8,8 @@ h_t = (1 - z_t) * n_t + z_t * h_{(t-1)}
 
 1. No memory cell
 2. Only 2 gates, Update and Reset gates
+3. Reset Gate: Input Gate and the Forget Gate of LSTM
+4. Update Gate: Output Gate of LSTM
 """
 
 
