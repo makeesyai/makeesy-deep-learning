@@ -1,26 +1,28 @@
-# Gated Recurrent Unit
+# GRU: Gated Recurrent Unit
 """
 Math:
-r_t = \sigma(W_{ir} x_t + b_{ir} + W_{hr} h_{(t-1)} + b_{hr}) \\
-z_t = \sigma(W_{iz} x_t + b_{iz} + W_{hz} h_{(t-1)} + b_{hz}) \\
-n_t = \tanh(W_{in} x_t + b_{in} + r_t * (W_{hn} h_{(t-1)}+ b_{hn})) \\
+r_t = \sigmoid(W_{ir} x_t + b_{ir} + W_{hr} h_{(t-1)} + b_{hr})
+z_t = \sigmoid(W_{iz} x_t + b_{iz} + W_{hz} h_{(t-1)} + b_{hz})
+n_t = \tanh(W_{in} x_t + b_{in} + r_t * (W_{hn} h_{(t-1)}+ b_{hn}))
 h_t = (1 - z_t) * n_t + z_t * h_{(t-1)}
 
-1. No memory cell
+1. No Memory cell
 2. Only 2 gates, Update and Reset gates
 3. Reset Gate: Input Gate and the Forget Gate of LSTM
 4. Update Gate: Output Gate of LSTM
-5. n_t: New Gate (pytorch), Current Memory Gate, Intermediate Hidden State, Candidate Hidden State etc.
-"""
 
+Points to remember
+1. n_t: New Gate (pytorch), Current Memory Gate, Intermediate Hidden State, Candidate Hidden State etc.
+2. Faster to train compared to LSTM with similar or better accuracy
+"""
 
 import torch
 from torch import nn
 
 
-class GRUNetwork(nn.Module):
+class GRUNetworks(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers):
-        super(GRUNetwork, self).__init__()
+        super(GRUNetworks, self).__init__()
         self.rnn = nn.GRU(input_size, hidden_size, num_layers, bidirectional=False, batch_first=True)
 
     def forward(self, inp, hidden_state):
@@ -34,7 +36,7 @@ batch_size = 2
 rnn_hidden_size = 3
 rnn_num_layers = 1
 
-model = GRUNetwork(feature_size, rnn_hidden_size, rnn_num_layers)
+model = GRUNetworks(feature_size, rnn_hidden_size, rnn_num_layers)
 
 # (bs, seq-len/tokens, feature) if batch_first=True, otherwise (seq-len/tokens, bs, feature)
 # For example input=['he is handsome', 'she is beautiful']
