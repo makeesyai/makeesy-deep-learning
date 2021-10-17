@@ -37,8 +37,7 @@ model = GRUNetwork(feature_size, rnn_hidden_size, rnn_num_layers)
 # For example input=['he is handsome', 'she is beautiful']
 x = torch.randn(batch_size, seq_length, feature_size)
 
-print(list(model.named_parameters()))
-exit()
+# print(list(model.named_parameters()))
 
 hidden = torch.zeros(rnn_num_layers, batch_size, rnn_hidden_size)  # n_layers x bs x hidden_size
 model_output, hidden = model(x, hidden)
