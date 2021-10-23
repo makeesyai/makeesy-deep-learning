@@ -1,0 +1,26 @@
+from numpy import matmul, round_
+from scipy.special import softmax
+
+Q = [
+    [0, 1, 1],  # Query for input 1
+    [4, 6, 0],  # Query for input 2
+    [2, 3, 1],  # Query for input 3
+]
+K_transpose = [
+    [1, 4, 3],
+    [1, 2, 1],
+    [1, 2, 2],
+]
+attn_scores = [
+    [2, 4, 3],
+    [10, 28, 18],
+    [6, 16, 11],
+]
+softmax_attn_score = [
+    [0.1, 0.7, 0.2],
+    [0., 1., 0.],
+    [0., 1., 0.],
+]
+
+print(matmul(Q, K_transpose))
+print(round_(softmax(attn_scores, axis=-1), decimals=1))
