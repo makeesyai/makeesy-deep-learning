@@ -2,7 +2,7 @@ from scipy.special import softmax
 import numpy as np
 
 """
-RNN and LSTM
+Self Attn
 https://colab.research.google.com/github/mrm8488/shared_colab_notebooks/blob/master/basic_self_attention_.ipynb
 
 Attentions
