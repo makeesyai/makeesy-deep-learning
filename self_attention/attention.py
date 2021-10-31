@@ -45,25 +45,29 @@ class SelfAttention(nn.Module):
         q = self.to_query(inputs)
         k = self.to_key(inputs)
         v = self.to_value(inputs)
-        attn_scores = matmul(q, k.t())
+        attn_scores = matmul(q, k.transpose(-1, -2))
         print(attn_scores)
         softmax_attn_score = softmax(attn_scores, dim=-1)
         print(numpy.round(softmax_attn_score.detach(), decimals=2))
-        v_formatted = v[:, None]
+        v_formatted = v[:, :, None]
         print(v_formatted)
-        softmax_attn_score_transpose = softmax_attn_score.t()
-        scores_formatted = softmax_attn_score_transpose[:, :, None]
+        softmax_attn_score_transpose = softmax_attn_score.transpose(-1, -2)
+        scores_formatted = softmax_attn_score_transpose[:, :, :, None]
         print(scores_formatted)
 
         v_weighted = v_formatted * scores_formatted
-        print(numpy.round(v_weighted.sum(dim=0).detach(), decimals=2))
+        print(numpy.round(v_weighted.sum(dim=1).detach(), decimals=2))
 
 
-x = torch.tensor([
+x = torch.tensor([[
     [1, 0, 1, 0],  # input 1
     [0, 2, 2, 2],  # input 2
     [1, 1, 1, 1],  # input 3
-], dtype=torch.float32)
+], [
+    [1, 0, 1, 0],  # input 1
+    [0, 2, 2, 2],  # input 2
+    [1, 1, 1, 1],  # input 3
+]], dtype=torch.float32)
 
 self_attn = SelfAttention(4, 3)
 self_attn(x)
