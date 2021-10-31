@@ -54,7 +54,6 @@ class SelfAttention(nn.Module):
         softmax_attn_score_transpose = softmax_attn_score.t()
         scores_formatted = softmax_attn_score_transpose[:, :, None]
         print(scores_formatted)
-
         v_weighted = v_formatted * scores_formatted
         print(numpy.round(v_weighted.sum(dim=0).detach(), decimals=2))
 
