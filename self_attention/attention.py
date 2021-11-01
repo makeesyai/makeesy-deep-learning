@@ -1,30 +1,29 @@
 # Self Attention: Implementation
 
 # Steps
-# 1. Create Query, Key, and Value using input vectors
-# 2. Compute attention scores using Query and Key (transpose)
-# 3. Convert attention scores to probability distribution using softmax
-
-# 4. Compute weighted values by multiplying by multiplying attention scores to corresponding values
-# Q_1 x K_1 * V_1, Q_1 x K_2 * V_2  ... Q_1 x K_N * V_N
-# Q_2 x K_1 * V_1, Q_2 x K_2 * V_2  ... Q_2 x K_N * V_N
-# ...
-# Q_N x K_1 * V_1, Q_N x K_2 * V_2  ... Q_N x K_N * V_N
-# Where "x" is the dot product and  "*" is the point-wise matrix multiplication.
-# Also, Q_Ns are defined as-
-# Q = [
-#     [0, 1, 1],  # Q_1
-#     [4, 6, 0],  # Q_2
-#     [2, 3, 1],  # Q_3
-# ]
-# Similarly, V_Ns are the rows of Value matrix, and
-# K_Ns are the columns of Key(transpose) Matrix.
+# 1. Create Query, Key, and Value using input vectors.
+# 2. Compute attention scores using Query and Key (transpose).
+# 3. Convert attention scores to probability distribution using SoftMax.
+# 4. Compute weighted values by multiplying attention scores to corresponding values. 
+# [Q₁ x K₁] * V₁, [Q₁ x K₂] * V₂ … [Q₁ x Kₙ] * Vₙ
+# [Q₂ x K₁] * V₁, [Q₂ x K₂] * V₂ … [Q₂ x Kₙ] * Vₙ
+# …
+# [Qₙ x K₁] * V₁, [Qₙ x K₂] * V₂ … [Qₙ x Kₙ] * Vₙ
 # 
-# 5. Add-up the weighted values, computed using the scores of a particular query e.g. 
-# Q_1 x K_1 * V_1 + Q_1 x K_2 * V_2  ... + Q_1 x K_N * V_N (ROW-1)
-# Q_2 x K_1 * V_1 + Q_2 x K_2 * V_2  ... + Q_2 x K_N * V_N (ROW-2)
-# ...
-# Q_N x K_1 * V_1 + Q_N x K_2 * V_2  ... + Q_N x K_N * V_N (ROW-3)
+Where "x" is the dot product and "*" is the pointwise matrix multiplication. Also, Qₙ is defined as-
+# Q = [
+# [0, 1, 1], # Q₁
+# [4, 6, 0], # Q₂
+# [2, 3, 1], # Q₃
+# ]
+# Similarly, Vₙ is a row of Value matrix, and Kₙ is the column of Key Matrix.
+
+# 5. Add-up the weighted values, computed using the scores of a particular query.
+# [Q₁ x K₁] * V₁+ [Q₁ x K₂] * V₂ … + [Q₁ x Kₙ] * Vₙ (R₁)
+# [Q₂ x K₁] * V₁+ [Q₂ x K₂] * V₂ … + [Q₂ x Kₙ] * Vₙ (R₂)
+# …
+# [Qₙ x K₁]* V₁+ [Qₙ x K₂]* V₂… + [Qₙ x Kₙ]* Vₙ (Rₙ)
+
 
 import torch
 from torch import nn, matmul
