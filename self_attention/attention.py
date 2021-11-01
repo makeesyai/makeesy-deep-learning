@@ -9,18 +9,20 @@
 # Q_1 x K_1 * V_1, Q_1 x K_2 * V_2  ... Q_1 x K_N * V_N
 # Q_2 x K_1 * V_1, Q_2 x K_2 * V_2  ... Q_2 x K_N * V_N
 # ...
-# Q_N x K_1 * V_1, Q_N*K_2 * V_2  ... Q_N x K_N * V_N
-# Where "x" is the dot product and  "*" is the pointwise matrix multiplication. Also, Q_Ns are defined as-
+# Q_N x K_1 * V_1, Q_N x K_2 * V_2  ... Q_N x K_N * V_N
+# Where "x" is the dot product and  "*" is the point-wise matrix multiplication.
+# Also, Q_Ns are defined as-
 # Q = [
 #     [0, 1, 1],  # Q_1
 #     [4, 6, 0],  # Q_2
 #     [2, 3, 1],  # Q_3
 # ]
-# Similarly, V_Ns, and K_Ns are the rows of Key and Value Matrices. 
+# Similarly, V_Ns are the rows of Value matrix, and
+# K_Ns are the columns of Key(transpose) Matrix.
 # 
 # 5. Add-up the weighted values, computed using the scores of a particular query e.g. 
 # Q_1 x K_1 * V_1 + Q_1 x K_2 * V_2  ... + Q_1 x K_N * V_N (ROW-1)
-# Q_2 x K_1 * V_1 + Q_2*K_2 * V_2  ... + Q_2 x K_N * V_N (ROW-2)
+# Q_2 x K_1 * V_1 + Q_2 x K_2 * V_2  ... + Q_2 x K_N * V_N (ROW-2)
 # ...
 # Q_N x K_1 * V_1 + Q_N x K_2 * V_2  ... + Q_N x K_N * V_N (ROW-3)
 
