@@ -10,7 +10,8 @@
 # …
 # [Qₙ x K₁] * V₁, [Qₙ x K₂] * V₂ … [Qₙ x Kₙ] * Vₙ
 # 
-Where "x" is the dot product and "*" is the pointwise matrix multiplication. Also, Qₙ is defined as-
+# Where "x" is the dot product and "*" is the pointwise matrix multiplication.
+# Also, Qₙ is defined as-
 # Q = [
 # [0, 1, 1], # Q₁
 # [4, 6, 0], # Q₂
