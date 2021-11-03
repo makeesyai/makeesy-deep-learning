@@ -44,27 +44,30 @@ class SelfAttention(nn.Module):
         self.to_value.weight = nn.Parameter(w_value.t())
 
     def forward(self, inputs):
-        seq, emb = inputs.shape
-        q = self.to_query(inputs)
-        print(q, q.stride())
-        q = q.view(seq, self.heads, self.heads_dim)
-        print(q, q.stride())
-        q_transpose = q.transpose(0, 1)
-        print(q_transpose, q_transpose.stride())
-        exit()
-        k = self.to_key(inputs)
-        v = self.to_value(inputs)
-        attn_scores = matmul(q, k.t())
-        print(attn_scores)
+        seq_length, emb = inputs.shape
+        q_l = self.to_query(inputs)
+        print(q_l)
+        q_v = q_l.view(seq_length, self.heads, self.heads_dim)
+        print(q_v)
+        q = q_v.transpose(0, 1)
+        print(q)
+
+        k = self.to_key(inputs).view(seq_length, self.heads, self.heads_dim).transpose(0, 1)
+        v = self.to_value(inputs).view(seq_length, self.heads, self.heads_dim).transpose(0, 1)
+        attn_scores = matmul(q, k.transpose(-2, -1))
         softmax_attn_score = softmax(attn_scores, dim=-1)
+
         print(numpy.round(softmax_attn_score.detach(), decimals=2))
-        v_formatted = v[:, None]
+        v_formatted = v[:, :, None]
+        print("Value Formatted")
         print(v_formatted)
-        softmax_attn_score_transpose = softmax_attn_score.t()
-        scores_formatted = softmax_attn_score_transpose[:, :, None]
+        softmax_attn_score_transpose = softmax_attn_score.transpose(-1, -2)
+        scores_formatted = softmax_attn_score_transpose[:, :, :,  None]
+        print("Scores formatted")
         print(scores_formatted)
         v_weighted = v_formatted * scores_formatted
-        print(numpy.round(v_weighted.sum(dim=0).detach(), decimals=2))
+        print(numpy.round(v_weighted.sum(dim=1).detach(), decimals=2))
+
         print(matmul(softmax_attn_score, v))
 
 
