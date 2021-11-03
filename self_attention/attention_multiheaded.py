@@ -45,8 +45,12 @@ class SelfAttention(nn.Module):
 
     def forward(self, inputs):
         seq, emb = inputs.shape
-        q = self.to_query(inputs).view(seq, self.heads, self.heads_dim).transpose(0, 1)
-        print(q)
+        q = self.to_query(inputs)
+        print(q, q.stride())
+        q = q.view(seq, self.heads, self.heads_dim)
+        print(q, q.stride())
+        q_transpose = q.transpose(0, 1)
+        print(q_transpose, q_transpose.stride())
         exit()
         k = self.to_key(inputs)
         v = self.to_value(inputs)
@@ -61,13 +65,22 @@ class SelfAttention(nn.Module):
         print(scores_formatted)
         v_weighted = v_formatted * scores_formatted
         print(numpy.round(v_weighted.sum(dim=0).detach(), decimals=2))
+        print(matmul(softmax_attn_score, v))
 
 
-x = torch.tensor([
-    [1, 0, 1, 0],  # input 1
-    [0, 2, 2, 2],  # input 2
-    [1, 1, 1, 1],  # input 3
-], dtype=torch.float32)
+x = torch.tensor(
+    [
+        [1, 0, 1, 0],  # input 1
+        [0, 2, 2, 2],  # input 2
+        [1, 1, 1, 1],  # input 3
+    ], dtype=torch.float32)
 
 self_attn = SelfAttention(4, 2, 3)
 self_attn(x)
+
+# x= torch.tensor(
+#     [[[0., 1., 1.], [0., 1., 1.]],
+#      [[4., 6., 0.], [4., 6., 0.]],
+#      [[2., 3., 1.], [2., 3., 1.]]]
+# )
+
