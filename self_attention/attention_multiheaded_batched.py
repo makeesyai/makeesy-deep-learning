@@ -62,19 +62,19 @@ class SelfAttention(nn.Module):
         weighted_v = matmul(softmax_attn_score_t, v_t)
         print(weighted_v)
 
-    def forward_bmm(self, inputs):
-        bs, seq, emb = inputs.shape
+    def forward_einsum(self, inputs):
+        b = inputs.shape[0]
         q = self.to_query(inputs)
         k = self.to_key(inputs)
         v = self.to_value(inputs)
-        attn_scores = matmul(q, k.transpose(-2, -1))
-        print(attn_scores)
-        softmax_attn_score = softmax(attn_scores, dim=-1)
-        print(numpy.round(softmax_attn_score.detach(), decimals=2))
-        print(v)
-        weighted_v_bmm = torch.bmm(softmax_attn_score, v)
-        print(weighted_v_bmm)
-        exit()
+        q, k, v = map(lambda x: x.reshape(b, -1, self.heads, self.heads_dim), [q, k, v])
+        attn_score = torch.einsum("bmhd,bnhd->bhmn", [q, k])
+        softmax_attn_score = softmax(attn_score, dim=-1)
+        output = torch.einsum("bhmn,bnhd->bmhd", [softmax_attn_score, v])
+        print(output)
+        output = output.reshape(b, -1, self.heads * self.heads_dim)
+        print(output)
+        # print(self.unified_heads(output))
 
 
 x = torch.tensor([
@@ -93,7 +93,7 @@ x = torch.tensor([
 
 self_attn = SelfAttention(4, 2, 3)
 self_attn(x)
-self_attn.forward_bmm(x)
+self_attn.forward_einsum(x)
 
 # y = torch.tensor(
 #     [
