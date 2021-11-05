@@ -1,3 +1,4 @@
+import numpy
 import torch
 from torch import einsum
 
@@ -66,7 +67,8 @@ print(k)
 attn_score = einsum("bmhd,bnhd->bhmn", q, k).type(torch.float32)
 print(attn_score)
 attn_score_probability = softmax(attn_score, dim=-1)
-print(attn_score_probability)
+print(numpy.round(attn_score_probability.detach(), decimals=2))
+print(v)
 output = einsum("bhmn,bnhd->bmhd", attn_score_probability, v)
 print(output)
 print(output.reshape(b, -1, h*d))
