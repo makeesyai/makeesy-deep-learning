@@ -1,5 +1,6 @@
 import numpy
-from numpy import transpose, matmul
+from numpy import transpose, matmul, round_
+
 V = numpy.asarray([
     [1, 1, 2],  # Value for input 1
     [2, 4, 4],  # Value for input 2
@@ -83,6 +84,8 @@ softmax_attn_score_transpose = transpose(softmax_attn_score)
 scores_format = softmax_attn_score_transpose[:, :, None]
 print(v_format)
 print(scores_format)
+print(round_(scores_format, decimals=1))
+
 weighted_V = numpy.array(v_format * scores_format)
-print(weighted_V)
+print(round_(weighted_V, decimals=1))
 print(weighted_V.sum(axis=0))
