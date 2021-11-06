@@ -79,10 +79,12 @@ class SelfAttention(nn.Module):
         softmax_attn_scores = softmax(attn_scores, dim=-1)
 
         # Format the values
+        print(v)
         v_formatted = v[:, None]
         print(v_formatted)
 
         # Format the attention scores
+        print(softmax_attn_scores)
         softmax_attn_scores_transpose = softmax_attn_scores.t()
         attn_scores_formatted = softmax_attn_scores_transpose[:, :, None]
         print(attn_scores_formatted)
@@ -92,6 +94,9 @@ class SelfAttention(nn.Module):
         print(v_weighted)
         output = v_weighted.sum(dim=0)
         print(output)
+        print(softmax_attn_scores)
+        # print(v)
+        # print(matmul(softmax_attn_scores, v))
 
 
 x = torch.tensor([
@@ -102,3 +107,9 @@ x = torch.tensor([
 
 attn = SelfAttention(4, 3)
 attn(x)
+
+final_output = torch.tensor([
+    [1.9100, 3.2405, 3.5752],
+    [2.0000, 3.9999, 4.0000],
+    [2.0000, 3.9865, 3.9932]
+])
