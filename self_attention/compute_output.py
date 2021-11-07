@@ -31,9 +31,9 @@ V = [
 ]
 
 softmax_attn_score = [
-    [0.1, 0.7, 0.2],
-    [0., 1., 0.],
-    [0., 1., 0.],
+    [0.1, 0.7, 0.2],  # Scores for query 1 [[Q₁ x K₁], [Q₁ x K₂], [Q₁ x K₃]]
+    [0.0, 1.0, 0.0],  # Scores for query 2 [[Q₂ x K₁], [Q₂ x K₂], [Q₂ x K₃]]
+    [0.0, 1.0, 0.0],  # Scores for query 3 [[Q₃ x K₁], [Q₃ x K₂], [Q₃ x K₃]]
 ]
 
 [0.1, 0.1, 0.2] = 0.1 * [1, 1, 2]  # Value for input 1
@@ -41,6 +41,13 @@ softmax_attn_score = [
 [0.4, 0.4, 0.6] = 0.2 * [2, 2, 3]  # Value for input 3
 ---------------
 [1.9, 3.3, 3.6]
+
+scores = [0.1, 0.7, 0.2] # [[Q₁ x K₁], [Q₁ x K₂], [Q₁ x K₃]]
+values = [ 
+    [1, 1, 2]  # Value for input 1
+    [2, 4, 4]  # Value for input 2
+    [2, 2, 3]  # Value for input 3
+]
 
 [0., 0., 0.] = 0. * [1, 1, 2]  # Value for input 1
 [2., 4., 4.] = 1. * [2, 4, 4]  # Value for input 2
