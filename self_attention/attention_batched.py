@@ -70,35 +70,50 @@ class SelfAttention(nn.Module):
         self.to_value.weight = nn.Parameter(w_value.t())
 
     def forward(self, inputs):
+        # Create Q, K, and V using input vectors
         q = self.to_query(inputs)
         k = self.to_key(inputs)
         v = self.to_value(inputs)
+        # Compute Attention scores
         attn_scores = matmul(q, k.transpose(-1, -2))
-        print(attn_scores)
-        softmax_attn_score = softmax(attn_scores, dim=-1)
-        print(numpy.round(softmax_attn_score.detach(), decimals=2))
-        v_formatted = v[:, :, None]
-        print(v_formatted)
-        softmax_attn_score_transpose = softmax_attn_score.transpose(-1, -2)
-        scores_formatted = softmax_attn_score_transpose[:, :, :, None]
-        print(scores_formatted)
+        # Convert attention scores into probability distributions
+        softmax_attn_scores = softmax(attn_scores, dim=-1)
 
-        v_weighted = v_formatted * scores_formatted
-        print(numpy.round(v_weighted.sum(dim=1).detach(), decimals=2))
-        print(softmax_attn_score)
-        print(v)
-        print(matmul(softmax_attn_score, v))
+        # Format the values
+        # print(v)
+        # v_formatted = v[:, None]
+        # print(v_formatted)
+
+        # Format the attention scores
+        # print(softmax_attn_scores)
+        # softmax_attn_scores_transpose = softmax_attn_scores.t()
+        # attn_scores_formatted = softmax_attn_scores_transpose[:, :, None]
+        # print(attn_scores_formatted)
+
+        #  Compute the final output
+        # v_weighted = attn_scores_formatted * v_formatted
+        # print(v_weighted)
+        # output = v_weighted.sum(dim=0)
+        # print(output)
+        print(matmul(softmax_attn_scores, v))
+        # print(softmax_attn_scores)
 
 
 x = torch.tensor([[
     [1, 0, 1, 0],  # input 1
     [0, 2, 2, 2],  # input 2
     [1, 1, 1, 1],  # input 3
-], [
+],
+[
     [1, 0, 1, 0],  # input 1
     [0, 2, 2, 2],  # input 2
     [1, 1, 1, 1],  # input 3
-]], dtype=torch.float32)
+]],
+dtype=torch.float32)
 
-self_attn = SelfAttention(4, 3)
-self_attn(x)
+attn = SelfAttention(4, 3)
+attn(x)
+
+# tensor([[1.9100, 3.2405, 3.5752],
+#         [2.0000, 3.9999, 4.0000],
+#         [2.0000, 3.9865, 3.9932]], grad_fn=<MmBackward>)
