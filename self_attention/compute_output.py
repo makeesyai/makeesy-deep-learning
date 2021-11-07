@@ -48,6 +48,7 @@ values = [
     [2, 4, 4]  # Value for input 2
     [2, 2, 3]  # Value for input 3
 ]
+[1.9, 3.3, 3.6] = matmul(scores, values)
 
 [0., 0., 0.] = 0. * [1, 1, 2]  # Value for input 1
 [2., 4., 4.] = 1. * [2, 4, 4]  # Value for input 2
