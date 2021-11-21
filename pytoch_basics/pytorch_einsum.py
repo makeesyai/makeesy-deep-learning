@@ -1,75 +1,24 @@
-import numpy
+from torch.functional import einsum
 import torch
-from torch import einsum
 
-# 'expression-with-axis-ids -> output-ids'
-# Transpose
-from torch.nn.functional import softmax
+# NOTATION: "source indices to multiplied-element-wise separated by comma-> target indices"
+# Broad-casted element-wise dot product
+a = torch.tensor([3])
+b = torch.arange(3, 6)
+# print(einsum("i,j->j", [a, b]))
 
+# Sum of a tensor
+a = torch.arange(3, 6)
+# print(einsum("i->", [a]))
+
+# Sum of a matrix rows/columns
 a = torch.arange(6).view(2, 3)
-# print(a)
-# print(einsum("ij->ji", a))
+# print(einsum("ij->j", [a]))  # the output dimension is column, so will sum columns
+# print(einsum("ij->i", [a]))  # the output dimension is row, so will sum rows
 
-# Sum Rows
-# print(einsum("ij->i", a))
-
-# Sum Columns
-# print(einsum("ij->j", a))
-
-# Sum
-# print(einsum("ij->", a))
-
-# element-wise multiplication
-# print(einsum("ij,ij->ij", a, a))
-
-# Dot product
-x = torch.arange(3)
-y = torch.arange(3, 6)
-# print(einsum("i, i->", x, y))
-
-# Outer Product
-# print(einsum("i,j->ij", x, y))
-
-# Matrix Multiplication
-x = torch.arange(6).view(2, 3)
-y = torch.arange(12).view(3, 4)
-# print(einsum("ij,jk->ik", x, y))
-
-# Batch Matrix multiplication
-x = torch.arange(6).view(1, 2, 3)
-y = torch.arange(12).view(2, 3, 2)
-# print(einsum("ijk,ikl->ijl", x, y))
-
-# 4-D matrix multiplication
-x = torch.arange(64).view(2, 4, 2, 4)
-y = torch.arange(96).view(2, 4, 4, 3)
-# print(einsum("bhmd,bhdn->bhmn", x, y))
-
-# Dot Product of 4-D tensors with axis rotation
-# q = torch.arange(24).view(2, 2, 2, 3)
-# k = torch.arange(24, 48).view(2, 2, 2, 3)
-b = 1
-h = 2
-d = 3
-q = torch.tensor([[[0., 1., 1., 0., 1., 1.],
-                   [4., 6., 0., 4., 6., 0.],
-                   [2., 3., 1., 2., 3., 1.]]]).view(b, -1, h, d)
-k = torch.tensor([[[1., 1., 1., 1., 1., 1.],
-                   [4., 2., 2., 4., 2., 2.],
-                   [3., 1., 2., 3., 1., 2.]]]).view(b, -1, h, d)
-v = torch.tensor([[[1., 1., 2., 1., 1., 2.],
-                   [2., 4., 4., 2., 4., 4.],
-                   [2., 2., 3., 2., 2., 3.]]]).view(b, -1, h, d)
-print('Query')
-print(q)
-print('Key')
-print(k)
-attn_score = einsum("bmhd,bnhd->bhmn", q, k).type(torch.float32)
-print(attn_score)
-attn_score_probability = softmax(attn_score, dim=-1)
-print(numpy.round(attn_score_probability.detach(), decimals=2))
-print(v)
-output = einsum("bhmn,bnhd->bmhd", attn_score_probability, v)
-print(output)
-print(output.reshape(b, -1, h*d))
-# In the above example, we have m, and n varying size and sum is over axis d (last axis)
+# Matrix multiplication
+a = torch.arange(6).view(2, 3)
+b = torch.arange(12).view(3, 4)
+print(a)
+print(b)
+print(einsum("ik,kj->ij", [a, b]))
