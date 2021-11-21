@@ -91,7 +91,7 @@ class SelfAttention(nn.Module):
         self.to_value_h2 = nn.Linear(embeddings, heads_dim, bias=False)
         self.to_value_h2.weight = nn.Parameter(w_value.t())
 
-        self.unify_heads = nn.Linear(heads * heads_dim, heads_dim)
+        self.unify_heads = nn.Linear(heads * heads_dim, heads_dim, bias=False)
         self.unify_heads.weight = nn.Parameter(w_unify_heads.t())
 
     def forward(self, inputs):
@@ -141,6 +141,10 @@ dtype=torch.float32)
 attn = SelfAttention(4, 3)
 attn(x)
 
-# tensor([[1.9100, 3.2405, 3.5752],
-#         [2.0000, 3.9999, 4.0000],
-#         [2.0000, 3.9865, 3.9932]], grad_fn=<MmBackward>)
+# tensor([[[ 7.3951, 13.6313, 10.6356],
+#          [ 8.0000, 15.9997, 11.9999],
+#          [ 7.9931, 15.9594, 11.9796]],
+#
+#         [[ 7.3951, 13.6313, 10.6356],
+#          [ 8.0000, 15.9997, 11.9999],
+#          [ 7.9931, 15.9594, 11.9796]]], grad_fn=<UnsafeViewBackward>)
