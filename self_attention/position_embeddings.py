@@ -1,4 +1,4 @@
-# NOTE: Sign is with even positions and cosine is at odd positions
+# NOTE: Sine is with even positions and Cosine is at odd positions
 
 import matplotlib.pyplot as plt
 import numpy as np
