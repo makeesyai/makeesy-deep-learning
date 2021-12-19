@@ -4,7 +4,7 @@
 
 # Properties
 # Check Relative Position property
-# Check Relative Position property after liner transformation
+# Check Relative Position property after linear transformation
 # Plot position embeddings to show that only initial a few dimensions matters
 
 import matplotlib.pyplot as plt
@@ -43,7 +43,8 @@ pos10 = position_enc[10]
 
 print(cosine(pos1, pos2))
 print(cosine(pos1, pos10))
-# Check Relative Position property after liner transformation
+
+# Check Relative Position property after linear transformation
 lm = CheckLinerProperty(in_features=512, out_features=512)
 p1 = lm(pos1)
 p2 = lm(pos2)
