@@ -3,7 +3,6 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial.distance import cosine
-from sklearn.metrics.pairwise import cosine_distances
 
 d_pos_vec = 512
 max_positions = 100
