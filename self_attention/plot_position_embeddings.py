@@ -56,7 +56,7 @@ inp_seq = np.arange(0, max_positions)
 emb_seq = position_enc[inp_seq]
 
 plt.figure(figsize=(10, 8))
-plt.pcolormesh(emb)
+plt.pcolormesh(emb_seq)
 plt.xlabel('Position Embeddings')
 plt.ylabel('Token Position')
 plt.xlim(0, d_model)
