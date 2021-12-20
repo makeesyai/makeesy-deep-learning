@@ -41,7 +41,9 @@ pos1 = position_enc[1]
 pos2 = position_enc[2]
 pos10 = position_enc[10]
 print(f'Cosine distance with raw embeddings')
+print('p1->p2')
 print(cosine(pos1, pos2))
+print('p1->p10')
 print(cosine(pos1, pos10))
 
 # Check Relative Position property after linear transformation
@@ -50,7 +52,9 @@ p1 = lm(pos1)
 p2 = lm(pos2)
 p10 = lm(pos10)
 print(f'Cosine distance with linear transformed embeddings')
+print('p1->p2')
 print(cosine(p1, p2))
+print('p1->p10')
 print(cosine(p1, p10))
 
 # Plot position embeddings to show that only initial a few dimensions matters
