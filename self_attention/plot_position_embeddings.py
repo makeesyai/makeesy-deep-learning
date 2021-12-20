@@ -31,7 +31,7 @@ position_enc = np.array([
     if (pos != 0) else np.zeros(d_model) for pos in range(0, max_positions)])
 
 position_enc[1:, 0::2] = np.sin(position_enc[1:, 0::2])  # 2i
-position_enc[1:, 1::2] = np.sin(position_enc[1:, 1::2])  # 2i + 1
+position_enc[1:, 1::2] = np.cos(position_enc[1:, 1::2])  # 2i + 1
 
 x = np.arange(0, max_positions)
 emb = position_enc[x]
@@ -40,7 +40,7 @@ emb = position_enc[x]
 pos1 = position_enc[1]
 pos2 = position_enc[2]
 pos10 = position_enc[10]
-
+print(f'Cosine distance with raw embeddings')
 print(cosine(pos1, pos2))
 print(cosine(pos1, pos10))
 
@@ -49,6 +49,7 @@ lm = CheckLinerProperty(in_features=512, out_features=512)
 p1 = lm(pos1)
 p2 = lm(pos2)
 p10 = lm(pos10)
+print(f'Cosine distance with linear transformed embeddings')
 print(cosine(p1, p2))
 print(cosine(p1, p10))
 
