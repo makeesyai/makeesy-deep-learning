@@ -57,7 +57,7 @@ print(cosine(p1, p2))
 print('p1->p10')
 print(cosine(p1, p10))
 
-# Plot position embeddings to show that only initial a few dimensions matters
+# # Plot position embeddings to show that only initial a few dimensions matters
 inp_seq = np.arange(0, max_positions)
 emb_seq = position_enc[inp_seq]
 
