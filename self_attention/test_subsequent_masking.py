@@ -17,8 +17,8 @@ def make_std_mask(tgt, pad):
     return tgt_mask
 
 
-scores = torch.tensor([0.2, 0.3, 0.3, 0.1, 0.1])
-target = torch.tensor([48, 45, 67, 36, 49])
+scores = torch.tensor([0.1, 0.3, 0.3, 0.1, 0.1, 0.03, 0.05, 0.02])
+target = torch.tensor([48, 45, 67, 36, 49, 34, 23, 32])
 print("Target: ", target)
 look_ahead_mask = make_std_mask(target, 0)
 print("Attn Mask: ", look_ahead_mask)
@@ -26,4 +26,4 @@ print("Attn Mask: ", look_ahead_mask)
 print("Attn Scores: ", scores)
 print("After applying attn mask:")
 scores = scores.masked_fill(look_ahead_mask == 0, -1e9)
-print(scores)
+print(scores.numpy())
