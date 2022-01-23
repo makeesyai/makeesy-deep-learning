@@ -17,8 +17,8 @@ def make_std_mask(tgt, pad):
     return tgt_mask
 
 
-scores = torch.tensor([0.2, 0.3, 0.3, 0.1, 0.1])
-target = torch.tensor([48, 45, 67, 36, 49])
+scores = torch.tensor([0.2, 0.3, 0.3, 0.1, 0.1, 0, 0])
+target = torch.tensor([48, 45, 67, 36, 49, 0, 0])
 print("Target: ", target)
 mask = make_std_mask(target, 0)
 print("Attn Mask: ", mask)
