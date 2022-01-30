@@ -1,4 +1,4 @@
-# Encoder/Standard Mask
+# Encoder/PAD/Standard Mask
 import torch
 pad = 0
 src = torch.tensor([1, 2, 3, 0, 0])
