@@ -1,7 +1,7 @@
 import torch
 pad = 0
 
-# Subsequent Mask: torch.triu()
+# Decoder/Subsequent/Look-ahead Mask: torch.triu()
 trg = torch.tensor([4, 5, 6, 7, 0, 0])
 trg_mask = (trg == pad).unsqueeze(-2).type(torch.int16)
 seq_len = trg.shape[-1]
