@@ -1,7 +1,7 @@
 import torch
 pad = 0
 
-# Standard Mask
+# Encoder/Standard Mask
 src = torch.tensor([1, 2, 3, 0, 0])
 mask = (src == pad).unsqueeze(-2).type(torch.int16)
 print(mask)
