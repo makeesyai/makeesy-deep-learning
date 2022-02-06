@@ -8,6 +8,8 @@ print(src_mask.shape)
 print(src_mask)
 seq_len = src.shape[-1]
 bs = src.shape[0]
+# heads = 2
+# attn_shape = (bs, heads, seq_len, seq_len)
 attn_shape = (bs, 1, seq_len, seq_len)
 attn_scores = torch.rand(attn_shape)
 print(attn_scores)
