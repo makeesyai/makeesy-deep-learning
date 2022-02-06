@@ -1,11 +1,15 @@
 # Decoder/Subsequent/Look-ahead Mask: torch.triu()
 import torch
 pad = 0
-trg = torch.tensor([4, 5, 6, 7, 0, 0])
+trg = torch.tensor([[1, 2, 3, 0, 0, 0], [1, 2, 3, 4, 0, 0]])
 trg_mask = (trg == pad).unsqueeze(-2).type(torch.int16)
-seq_len = trg.shape[-1]
-attn_shape = (1, seq_len, seq_len)
-look_ahead_mask = trg_mask | torch.triu(torch.ones(attn_shape), diagonal=1).type(torch.int16)
+print(trg_mask)
+bs, seq_len = trg.shape
+print(bs, seq_len)
+attn_shape = (bs, 1, seq_len, seq_len)
+triu_tensor = torch.triu(torch.ones(attn_shape), diagonal=1).type(torch.int16)
+print(triu_tensor)
+look_ahead_mask = trg_mask | triu_tensor
 print(look_ahead_mask)
 attn_scores = torch.rand(attn_shape)
 print(attn_scores)
