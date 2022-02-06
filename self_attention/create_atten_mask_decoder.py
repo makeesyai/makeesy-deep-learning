@@ -12,9 +12,10 @@ subsequent_mask = triu_tesnor | trg_mask
 print(trg_mask)
 print(triu_tesnor)
 print(subsequent_mask)
+# Multi head
 heads = 2
 attn_shape = (bs, heads, seq_len, seq_len)
-# For single
+# For Single Head
 # attn_shape = (bs, seq_len, seq_len)
 attn_score = torch.rand(attn_shape)
 attn_score_masked = attn_score.masked_fill(subsequent_mask == 1, value=-1e9)
