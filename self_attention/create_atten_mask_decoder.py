@@ -11,7 +11,7 @@ triu_tensor = torch.triu(torch.ones(mask_shape), diagonal=1).type(torch.int16)
 print(triu_tensor)
 look_ahead_mask = trg_mask | triu_tensor
 print(look_ahead_mask)
-heads = 2
+# heads = 2
 # attn_shape = (bs, heads, seq_len, seq_len)
 attn_shape = (bs, seq_len, seq_len)
 attn_scores = torch.rand(attn_shape)
