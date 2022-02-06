@@ -15,7 +15,7 @@ print(subsequent_mask)
 heads = 2
 attn_shape = (bs, heads, seq_len, seq_len)
 # For single
-# attn_shape = (1, seq_len, seq_len)
+# attn_shape = (bs, seq_len, seq_len)
 attn_score = torch.rand(attn_shape)
 attn_score_masked = attn_score.masked_fill(subsequent_mask == 1, value=-1e9)
 print(attn_score_masked)
