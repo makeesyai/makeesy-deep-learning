@@ -4,7 +4,7 @@ pad = 0
 trg = torch.tensor([[1, 2, 0, 0, 0], [1, 2, 3, 0, 0]])
 bs, seq_len = trg.shape
 # this will be the same of all samples in a batch and will broadcast
-# when we take a or operation with trg mask
+# when we take an OR operation with trg mask
 mask_shape = (1, seq_len, seq_len)
 ones_tensor = torch.ones(mask_shape)
 print(ones_tensor)
