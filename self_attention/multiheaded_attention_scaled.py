@@ -49,21 +49,21 @@ class SelfAttention(nn.Module):
 
         # In final implementation, we must use bias=True
         self.to_query = nn.Linear(embeddings, heads * heads_dim, bias=False)
-        self.to_query.weight = nn.Parameter(w_query.t())  # This should be commented in final implementation
+        # self.to_query.weight = nn.Parameter(w_query.t())  # This should be commented in final implementation
 
         # In final implementation, we must use bias=True
         self.to_key = nn.Linear(embeddings, heads* heads_dim, bias=False)
-        self.to_key.weight = nn.Parameter(w_key.t())  # This should be commented in final implementation
+        # self.to_key.weight = nn.Parameter(w_key.t())  # This should be commented in final implementation
 
         # In final implementation, we must use bias=True
         self.to_value = nn.Linear(embeddings, heads * heads_dim, bias=False)
-        self.to_value.weight = nn.Parameter(w_value.t())  # This should be commented in final implementation
+        # self.to_value.weight = nn.Parameter(w_value.t())  # This should be commented in final implementation
 
         # In final implementation, we must use bias=True
         self.unify_heads = nn.Linear(heads * heads_dim, heads_dim, bias=False)
-        self.unify_heads.weight = nn.Parameter(w_unify_heads.t())  # This should be commented in final implementation
+        # self.unify_heads.weight = nn.Parameter(w_unify_heads.t())  # This should be commented in final implementation
 
-    def forward(self, inputs):
+    def forward(self, inputs, mask=None):
         # Create Q, K, and V using input vectors
         bs, seq, emb_dim = inputs.shape
 
@@ -82,9 +82,9 @@ class SelfAttention(nn.Module):
         # attn_scores = attn_scores/(self.heads_dim ** 1/float(2))
 
         # Apply masking
-        # if mask is not None:
-        #     attn_scores = attn_scores.masked_fill(mask == 1, -1e9)
-        # print(attn_scores)
+        if mask is not None:
+            attn_scores = attn_scores.masked_fill(mask == 1, value=-1e9)
+        print(attn_scores)
 
         # Convert attention scores into probability distributions
         softmax_attn_scores = softmax(attn_scores, dim=-1)

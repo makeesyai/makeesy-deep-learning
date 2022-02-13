@@ -1,5 +1,8 @@
 # Decoder/Subsequent/Look-ahead Mask: torch.triu()
 import torch
+
+from self_attention.multiheaded_attention_scaled import SelfAttention
+
 pad = 0
 trg = torch.tensor([[1, 2, 0, 0, 0], [1, 2, 3, 0, 0]])
 bs, seq_len = trg.shape
@@ -14,11 +17,8 @@ subsequent_mask = triu_tesnor | trg_mask  # broadcasting to bs x seq_len x seq_l
 print(trg_mask)
 print(triu_tesnor)
 print(subsequent_mask)
-# Multi head
-heads = 2
-attn_shape = (bs, heads, seq_len, seq_len)
-# For Single Head
-# attn_shape = (bs, seq_len, seq_len)
-attn_score = torch.rand(attn_shape)
-attn_score_masked = attn_score.masked_fill(subsequent_mask == 1, value=-1e9)
-print(attn_score_masked)
+emb_dim=4
+inp_shape = (bs, seq_len, emb_dim)
+x = torch.rand(inp_shape)
+atten_model = SelfAttention(embeddings=emb_dim, heads_dim=3, heads=2)
+atten_model(x, subsequent_mask)
