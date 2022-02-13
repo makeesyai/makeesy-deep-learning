@@ -64,7 +64,6 @@ class SelfAttention(nn.Module):
         self.unify_heads.weight = nn.Parameter(w_unify_heads.t())  # This should be commented in final implementation
 
     def forward(self, inputs):
-        # Head 1
         # Create Q, K, and V using input vectors
         bs, seq, emb_dim = inputs.shape
 
