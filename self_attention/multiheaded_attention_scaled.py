@@ -110,7 +110,7 @@ if __name__ == '__main__':
     ],
         dtype=torch.float32)
 
-    attn = SelfAttention(4, heads_dim=3)
+    attn = SelfAttention(embeddings=4, heads_dim=3)
     attn(x)
 
     # temp = [[[[0., 1., 1.], [0., 1., 1.]],
