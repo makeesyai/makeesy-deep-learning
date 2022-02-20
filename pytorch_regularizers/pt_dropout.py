@@ -2,8 +2,8 @@
 # 1. Proven to be an effective technique for regularization.
 # 2. Usage samples from a Bernoulli distribution.
 # 3. In a batch, each sample will be zeroed out independently.
-# 3. The outputs are scaled by a factor of 1/1−p.
-# 4. During evaluation the module simply computes an identity function.
+# 4. The outputs are scaled by a factor of 1/1−p.
+# 5. During evaluation the module simply computes an identity function.
 
 
 # Bernoulli sampling: Basics
@@ -25,7 +25,7 @@ print(tensor * (1/(1-p)))  # Scaling tensor
 output = dropout_model(tensor)
 print(output)
 
-# Eval model
+# Eval mode
 dropout_model = dropout_model.eval()
 output = dropout_model(tensor)
 print(output)
