@@ -1,0 +1,32 @@
+# Batch Norm:
+# Technique to help coordinate the update of multiple layers in the model.
+import torch
+from torch import nn
+
+
+def batch_norm(x, gamma, beta, eps=1e-5):
+    n, d = x.shape
+
+    sample_mean = x.mean(axis=0)
+    sample_var = x.var(axis=0)
+
+    std = torch.sqrt(sample_var + eps)
+    x_centered = x - sample_mean
+    x_norm = x_centered / std
+    out = gamma * x_norm + beta
+
+    cache = (x_norm, x_centered, std, gamma)
+
+    return out, x_norm
+
+
+x = torch.rand(2, 3)
+print(x)
+x_norm, cache = batch_norm(x, gamma=0.02, beta=0.01)
+print(x_norm)
+print(cache)
+
+# With Learnable Parameters
+m = nn.BatchNorm1d(3, affine=False, momentum=0, eps=1e-5)
+output = m(x)
+print(output)
