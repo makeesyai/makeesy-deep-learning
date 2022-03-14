@@ -9,8 +9,10 @@ mask_shape = (1, seq_len, seq_len)
 ones_tensor = torch.ones(mask_shape)
 print(ones_tensor)
 triu_tesnor = torch.triu(ones_tensor, diagonal=1).type(torch.int16)
-trg_mask = (trg == pad).type(torch.int16).unsqueeze(-2).unsqueeze(-2)
+trg_mask = (trg == pad).type(torch.int16).unsqueeze(-2)
 subsequent_mask = triu_tesnor | trg_mask  # broadcasting to bs x seq_len x seq_len
+subsequent_mask = subsequent_mask.unsqueeze(1)
+
 print(trg_mask)
 print(triu_tesnor)
 print(subsequent_mask)
