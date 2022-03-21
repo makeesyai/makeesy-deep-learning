@@ -95,8 +95,8 @@ class SelfAttention(nn.Module):
         # print(v_weighted)
         # output = v_weighted.sum(dim=0)
         # print(output)
-        print(matmul(softmax_attn_scores, v))
-        # print(softmax_attn_scores)
+        output = matmul(softmax_attn_scores, v)
+        print(output)
 
 
 x = torch.tensor([[
