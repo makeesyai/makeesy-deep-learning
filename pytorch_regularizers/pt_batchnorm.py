@@ -1,6 +1,9 @@
 # Batch Norm:
-# Hard to train deep models with saturating non-linearities
-# Batch Norm helps coordinate the update of multiple layers in the model.
+# 1. Hard to train deep models with saturating non-linearities
+# 2. Batch Norm(BN) helps coordinate the update of multiple layers in the model.
+# 3. Batch Norm transform is generally inserted after Fully Connected layer or
+# Convolutional Layer, and before non-linearity
+# Example: FC -> BN -> tanh -> FC -> BN -> tanh
 
 import torch
 from torch import nn
