@@ -1,19 +1,21 @@
 # Batch Norm:
-# Technique to help coordinate the update of multiple layers in the model.
+# Hard to train deep models with saturating non-linearities
+# Batch Norm helps coordinate the update of multiple layers in the model.
+
 import torch
 from torch import nn
 
 torch.manual_seed(50)
 
 
-def batch_norm(x, gamma, beta, eps=1e-5):
-    n, d = x.shape
+def batch_norm(batch_x, gamma, beta, eps=1e-5):
+    n, d = batch_x.shape
 
-    sample_mean = x.mean(axis=0)
-    sample_var = x.var(axis=0, unbiased=False)
+    sample_mean = batch_x.mean(axis=0)
+    sample_var = batch_x.var(axis=0, unbiased=False)
 
     std = torch.sqrt(sample_var + eps)
-    x_centered = x - sample_mean
+    x_centered = batch_x - sample_mean
 
     x_norm = x_centered / std
     out = gamma * x_norm + beta
