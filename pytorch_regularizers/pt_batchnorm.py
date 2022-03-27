@@ -9,6 +9,7 @@ torch.manual_seed(50)
 
 
 def batch_norm(batch_x, gamma, beta, eps=1e-5):
+    # Manual implementation
     n, d = batch_x.shape
 
     sample_mean = batch_x.mean(axis=0)
@@ -31,7 +32,8 @@ x_norm, cache = batch_norm(x, gamma=0.02, beta=0.01)
 print(x_norm)
 print(cache[0])
 
-# With Learnable Parameters
+# Pytorch implementation
+# With/Without Learnable Parameters
 model = nn.BatchNorm1d(3, affine=False, momentum=1, eps=1e-5)
 output = model(x)
 print(output)
