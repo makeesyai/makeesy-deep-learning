@@ -1,10 +1,10 @@
-# Layer Norm:
-
-# Challenges BatchNorm
-# 1. Batch Size: size = 1 -> fails, batch-size=small -> noisy
+# Layer Norm
+# ----------
+# Challenges BatchNorm:
+# 1. Batch Size: batch-size = 1 -> fails, batch-size=small -> noisy
 # 2. RNN: a separate batch norm layer for each time-step
 
-# Usage: Similar to Batch Norm
+# Usage: Similar to Batch Norm:
 # Example: FC -> LN -> tanh -> FC -> LN -> tanh
 
 import torch
