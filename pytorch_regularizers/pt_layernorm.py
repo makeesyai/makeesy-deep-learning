@@ -2,8 +2,7 @@
 
 # Challenges BatchNorm
 # 1. Batch Size: size = 1 -> fails, batch-size=small -> noisy
-# 2. Problem in distributed training.
-# 3. RNN: a separate batch norm layer for each time-step
+# 2. RNN: a separate batch norm layer for each time-step
 
 # Usage: Similar to Batch Norm
 # Example: FC -> LN -> tanh -> FC -> LN -> tanh
