@@ -60,7 +60,7 @@ class SelfAttention(nn.Module):
         # self.to_value.weight = nn.Parameter(w_value.t())  # This should be commented in final implementation
 
         # In final implementation, we must use bias=True
-        self.unify_heads = nn.Linear(heads * heads_dim, heads_dim, bias=False)
+        self.unify_heads = nn.Linear(heads * heads_dim, embeddings, bias=False)
         # self.unify_heads.weight = nn.Parameter(w_unify_heads.t())  # This should be commented in final implementation
 
     def forward(self, inputs, mask=None):
@@ -84,7 +84,6 @@ class SelfAttention(nn.Module):
         # Apply masking
         if mask is not None:
             attn_scores = attn_scores.masked_fill(mask == 1, value=-1e9)
-        print(attn_scores)
 
         # Convert attention scores into probability distributions
         softmax_attn_scores = softmax(attn_scores, dim=-1)
@@ -96,7 +95,7 @@ class SelfAttention(nn.Module):
         # Transpose: bs x seq-length x num-heads x heads_dim -> bs x seq-length x num-heads x heads_dim)
         output = output.transpose(1, 2).contiguous().view(bs, seq, self.heads * self.heads_dim)
         output_final = self.unify_heads(output)
-        print(output_final)
+        return output_final
 
 
 if __name__ == '__main__':
