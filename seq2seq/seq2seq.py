@@ -3,10 +3,28 @@
 # 2. Layer Normalization: What are Pre/Post-Norm?
 # 3. FF network with 2 hidden layers: FF + ACT + Dropout + FF
 # 4. Dropout Layer
-
+import math
 
 import torch
-from torch import nn, matmul, softmax
+from torch import nn, matmul, softmax, Tensor
+
+
+class PositionalEncoding(nn.Module):
+    def __init__(self, emb_size: int, dropout, maxlen: int = 5000):
+        super(PositionalEncoding, self).__init__()
+        den = torch.exp(- torch.arange(0, emb_size, 2) * math.log(10000) / emb_size)
+        pos = torch.arange(0, maxlen).reshape(maxlen, 1)
+        pos_embedding = torch.zeros((maxlen, emb_size))
+        pos_embedding[:, 0::2] = torch.sin(pos * den)
+        pos_embedding[:, 1::2] = torch.cos(pos * den)
+        pos_embedding = pos_embedding.unsqueeze(-2)
+
+        self.dropout = nn.Dropout(dropout)
+        self.register_buffer('pos_embedding', pos_embedding)
+
+    def forward(self, token_embedding: Tensor):
+        return self.dropout(token_embedding +
+                            self.pos_embedding[:token_embedding.size(0), :])
 
 
 class MultiheadedAttention(nn.Module):
@@ -50,8 +68,8 @@ class MultiheadedAttention(nn.Module):
         v = self.to_value(kv).view(kv_bs, -1, self.heads, self.heads_dim).transpose(1, 2)
 
         # Scale before Dot-product: q/root_forth(head_dim) and k/root_forth(head_dim)
-        q = q/(self.heads_dim ** (1/4))
-        k = k/(self.heads_dim ** (1/4))
+        q = q / (self.heads_dim ** (1 / 4))
+        k = k / (self.heads_dim ** (1 / 4))
 
         # Compute Attention scores
         attn_scores = matmul(q, k.transpose(-1, -2))
@@ -102,9 +120,8 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, vocab_size, d_model, num_heads=2, num_layers=2, max_seq=512):
+    def __init__(self, d_model, num_heads=2, num_layers=2, max_seq=512):
         super(TransformerEncoder, self).__init__()
-        self.word_embeddings = nn.Embedding(vocab_size, d_model)
 
         self.enc_layers = nn.ModuleList()
         for i in range(num_layers):
@@ -112,8 +129,7 @@ class TransformerEncoder(nn.Module):
 
         self.norm = nn.LayerNorm(d_model)
 
-    def forward(self, token_ids, mask=None):
-        embeddings = self.word_embeddings(token_ids)
+    def forward(self, embeddings, mask=None):
 
         hidden_states = []
         for layer in self.enc_layers:
@@ -161,9 +177,8 @@ class TransformerDecoderLayer(nn.Module):
 
 
 class TransformerDecoder(nn.Module):
-    def __init__(self, vocab_size, embedding_dim, num_heads=2, num_layers=2, max_seq=512):
+    def __init__(self, embedding_dim, num_heads=2, num_layers=2):
         super(TransformerDecoder, self).__init__()
-        self.word_embeddings = nn.Embedding(vocab_size, embedding_dim)
 
         self.enc_layers = nn.ModuleList()
         for i in range(num_layers):
@@ -171,15 +186,47 @@ class TransformerDecoder(nn.Module):
 
         self.norm = nn.LayerNorm(embedding_dim)
 
-    def forward(self, token_ids, memory, src_mask=None, trg_mask=None):
-        embeddings = self.word_embeddings(token_ids)
-
+    def forward(self, embeddings, memory, src_mask=None, trg_mask=None):
         hidden_states = []
         for layer in self.enc_layers:
             embeddings = layer(embeddings, memory=memory, src_mask=src_mask, trg_mask=trg_mask)
             hidden_states.append(embeddings)
 
         return hidden_states, self.norm(hidden_states[-1])
+
+
+class EncoderDecoder(nn.Module):
+    def __init__(self, src_vocab, trg_vocab, d_model=128, n_heads=2, num_enc_layers=6, num_dec_layers=6, ff_dim=512):
+        super(EncoderDecoder, self).__init__()
+
+        self.src_embeddings = nn.Embedding(src_vocab, d_model)
+        self.tgt_embeddings = nn.Embedding(trg_vocab, d_model)
+        self.pe = PositionalEncoding(d_model, dropout=0.01)
+
+        # Encoder model
+        self.encoder = TransformerEncoder(d_model=d_model, num_heads=n_heads,
+                                          num_layers=num_enc_layers)
+
+        # Decoder model
+        self.decoder = TransformerDecoder(embedding_dim=d_model, num_heads=n_heads,
+                                          num_layers=num_dec_layers)
+
+        # Generator
+        self.generator = nn.Linear(d_model, trg_vocab)
+
+    def encode(self, x):
+        embeddings = self.pe(self.src_embeddings(x))
+        return self.encoder(embeddings)
+
+    def decode(self, y, memory):
+        tensor_y = self.pe(self.tgt_embeddings(y))
+        return self.decoder(tensor_y, memory)
+
+    def forward(self, x, y):
+        hidden_states, memory = self.encode(x)
+        hidden_states, tensor = self.decode(y, memory)
+        logits = self.generator(tensor)
+        return logits
 
 
 if __name__ == '__main__':
@@ -189,8 +236,8 @@ if __name__ == '__main__':
     src_token_ids = torch.randint(low=0, high=1000, size=(2, 32))
     trg_token_ids = torch.randint(low=0, high=2000, size=(2, 80))
     print(src_token_ids)
-    model_encoder = TransformerEncoder(vocab_size=src_vocab, d_model=d_model, num_heads=8, num_layers=24)
-    model_decoder = TransformerDecoder(vocab_size=trg_vocab, embedding_dim=d_model, num_heads=2, num_layers=2)
+    model_encoder = TransformerEncoder(d_model=d_model, num_heads=8, num_layers=24)
+    model_decoder = TransformerDecoder(embedding_dim=d_model, num_heads=2, num_layers=2)
     hidden_state_enc, output_enc = model_encoder(src_token_ids)
     print(len(hidden_state_enc))
     print(output_enc.shape)
