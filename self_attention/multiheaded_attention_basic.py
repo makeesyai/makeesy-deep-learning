@@ -91,7 +91,7 @@ class SelfAttention(nn.Module):
         self.to_value_h2 = nn.Linear(embeddings, heads_dim, bias=False)
         self.to_value_h2.weight = nn.Parameter(w_value.t())
 
-        self.unify_heads = nn.Linear(heads * heads_dim, heads_dim, bias=False)
+        self.unify_heads = nn.Linear(heads * heads_dim, embeddings, bias=False)
         self.unify_heads.weight = nn.Parameter(w_unify_heads.t())
 
     def forward(self, inputs):

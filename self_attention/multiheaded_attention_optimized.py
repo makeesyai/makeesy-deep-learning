@@ -61,7 +61,7 @@ class SelfAttention(nn.Module):
         self.to_value.weight = nn.Parameter(w_value.t())  # This should be commented in final implementation
 
         # In final implementation, we must use bias=True
-        self.unify_heads = nn.Linear(heads * heads_dim, heads_dim, bias=False)
+        self.unify_heads = nn.Linear(heads * heads_dim, embeddings, bias=False)
         self.unify_heads.weight = nn.Parameter(w_unify_heads.t())  # This should be commented in final implementation
 
     def forward(self, inputs):
