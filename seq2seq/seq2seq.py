@@ -11,10 +11,10 @@ from torch import nn
 from self_attention.multiheaded_attention_scaled import SelfAttention
 
 
-class TransformerLayer(nn.Module):
-    def __init__(self, embedding_dim, head_dim, num_head, ff_size, dropout=0.1):
-        super(TransformerLayer, self).__init__()
-        self.self_attn = SelfAttention(embeddings=embedding_dim, heads_dim=head_dim, heads=num_head)
+class TransformerEncoderLayer(nn.Module):
+    def __init__(self, embedding_dim, head_dim, num_heads, ff_size=4, dropout=0.1):
+        super(TransformerEncoderLayer, self).__init__()
+        self.self_attn = SelfAttention(embeddings=embedding_dim, heads_dim=head_dim, heads=num_heads)
         self.attn_norm = nn.LayerNorm(embedding_dim)
 
         self.ff = nn.Sequential(
@@ -37,8 +37,29 @@ class TransformerLayer(nn.Module):
         return embeddings
 
 
+class TransformerEncoder(nn.Module):
+    def __init__(self, vocab_size, embedding_dim, num_heads=2, num_layers=2, max_seq=512):
+        super(TransformerEncoder, self).__init__()
+        self.word_embeddings = nn.Embedding(vocab_size, embedding_dim)
+
+        self.enc_layers = nn.ModuleList()
+        for i in range(num_layers):
+            self.enc_layers.append(TransformerEncoderLayer(embedding_dim, head_dim=embedding_dim, num_heads=num_heads))
+
+    def forward(self, token_ids):
+        embeddings = self.word_embeddings(token_ids)
+
+        hidden_states = []
+        for layer in self.enc_layers:
+            hidden_states.append(layer(embeddings))
+
+        return hidden_states, hidden_states[-1]
+
+
 if __name__ == '__main__':
-    embeddings = torch.rand(2, 3, 512)
-    model = TransformerLayer(embedding_dim=512, head_dim=128, num_head=2, ff_size=2)
-    output = model(embeddings)
+    token_ids = torch.randint(low=0, high=511, size=(2, 32))
+    print(token_ids)
+    model = TransformerEncoder(vocab_size=512, embedding_dim=768, num_heads=8, num_layers=24)
+    hidden_state, output = model(token_ids)
+    print(len(hidden_state))
     print(output.shape)
