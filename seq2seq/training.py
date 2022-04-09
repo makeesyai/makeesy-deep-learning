@@ -122,14 +122,13 @@ if __name__ == '__main__':
                 hidden, out = model.decode(ys, memory)
                 prob = model.generator(out[:, -1])
                 _, next_word = torch.max(prob, dim=-1)
-                print(next_word)
                 next_word = next_word.item()
                 ys = torch.cat([ys,
                                 torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=1)
                 if next_word == EOS_IDX:
                     break
-            print(ys.transpose(0, 1))
-            print(tgt.transpose(0, 1))
+            print(ys)
+            print(tgt)
             count += 1
             if count == 10:
                 exit()
