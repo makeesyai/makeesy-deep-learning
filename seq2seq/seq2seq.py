@@ -10,27 +10,27 @@ from torch import nn, matmul, softmax
 
 
 class MultiheadedAttention(nn.Module):
-    def __init__(self, embeddings, heads_dim=512, heads=2):
+    def __init__(self, d_model, heads=2):
         super(MultiheadedAttention, self).__init__()
 
+        self.d_model = d_model
         self.heads = heads
-
-        self.heads_dim = heads_dim
+        self.heads_dim = int(d_model / heads)
 
         # In final implementation, we must use bias=True
-        self.to_query = nn.Linear(embeddings, heads * self.heads_dim, bias=False)
+        self.to_query = nn.Linear(self.d_model, heads * self.heads_dim, bias=False)
         # self.to_query.weight = nn.Parameter(w_query.t())  # This should be commented in final implementation
 
         # In final implementation, we must use bias=True
-        self.to_key = nn.Linear(embeddings, heads * self.heads_dim, bias=False)
+        self.to_key = nn.Linear(self.d_model, heads * self.heads_dim, bias=False)
         # self.to_key.weight = nn.Parameter(w_key.t())  # This should be commented in final implementation
 
         # In final implementation, we must use bias=True
-        self.to_value = nn.Linear(embeddings, heads * self.heads_dim, bias=False)
+        self.to_value = nn.Linear(self.d_model, heads * self.heads_dim, bias=False)
         # self.to_value.weight = nn.Parameter(w_value.t())  # This should be commented in final implementation
 
         # In final implementation, we must use bias=True
-        self.unify_heads = nn.Linear(heads * self.heads_dim, embeddings, bias=False)
+        self.unify_heads = nn.Linear(heads * self.heads_dim, self.d_model, bias=False)
         # self.unify_heads.weight = nn.Parameter(w_unify_heads.t())  # This should be commented in final implementation
 
     def forward(self, inputs, mask=None, kv=None):
@@ -42,16 +42,16 @@ class MultiheadedAttention(nn.Module):
         else:
             kv = inputs
 
-        kv_bs, kv_seq, kv_emb_dim = kv.size()
+        kv_bs, kv_seq, _ = kv.size()
 
         # Transpose: bs x seq-length x num-heads x heads_dim -> bs x num-heads x seq-length x heads_dim
-        q = self.to_query(inputs).view(bs, seq, self.heads, self.heads_dim).transpose(1, 2)
-        k = self.to_key(kv).view(kv_bs, kv_seq, self.heads, self.heads_dim).transpose(1, 2)
-        v = self.to_value(kv).view(kv_bs, kv_seq, self.heads, self.heads_dim).transpose(1, 2)
+        q = self.to_query(inputs).view(bs, -1, self.heads, self.heads_dim).transpose(1, 2)
+        k = self.to_key(kv).view(kv_bs, -1, self.heads, self.heads_dim).transpose(1, 2)
+        v = self.to_value(kv).view(kv_bs, -1, self.heads, self.heads_dim).transpose(1, 2)
 
         # Scale before Dot-product: q/root_forth(head_dim) and k/root_forth(head_dim)
-        q = q/(self.heads_dim ** 1 / float(4))
-        k = k/(self.heads_dim ** 1 / float(4))
+        q = q/(self.heads_dim ** (1/4))
+        k = k/(self.heads_dim ** (1/4))
 
         # Compute Attention scores
         attn_scores = matmul(q, k.transpose(-1, -2))
@@ -70,25 +70,25 @@ class MultiheadedAttention(nn.Module):
 
         # Reshape the weighted values
         # Transpose: bs x seq-length x num-heads x heads_dim -> bs x seq-length x num-heads x heads_dim)
-        output = output.transpose(1, 2).contiguous().view(bs, seq, self.heads * self.heads_dim)
+        output = output.transpose(1, 2).contiguous().view(bs, -1, self.heads * self.heads_dim)
         output_final = self.unify_heads(output)
         return output_final
 
 
 class TransformerEncoderLayer(nn.Module):
-    def __init__(self, embedding_dim, head_dim, num_heads, ff_size=4, dropout=0.1):
+    def __init__(self, d_model, num_heads, ff_size=2096, dropout=0.1):
         super(TransformerEncoderLayer, self).__init__()
-        self.self_attn = MultiheadedAttention(embeddings=embedding_dim, heads_dim=head_dim, heads=num_heads)
-        self.attn_norm = nn.LayerNorm(embedding_dim)
+        self.self_attn = MultiheadedAttention(d_model=d_model, heads=num_heads)
+        self.attn_norm = nn.LayerNorm(d_model)
 
         self.ff = nn.Sequential(
-            nn.Linear(embedding_dim, ff_size * embedding_dim),
+            nn.Linear(d_model, ff_size),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(ff_size * embedding_dim, embedding_dim)
+            nn.Linear(ff_size, d_model)
         )
 
-        self.final_norm = nn.LayerNorm(embedding_dim)
+        self.final_norm = nn.LayerNorm(d_model)
 
         self.do = nn.Dropout(dropout)
 
@@ -102,15 +102,15 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, vocab_size, embedding_dim, num_heads=2, num_layers=2, max_seq=512):
+    def __init__(self, vocab_size, d_model, num_heads=2, num_layers=2, max_seq=512):
         super(TransformerEncoder, self).__init__()
-        self.word_embeddings = nn.Embedding(vocab_size, embedding_dim)
+        self.word_embeddings = nn.Embedding(vocab_size, d_model)
 
         self.enc_layers = nn.ModuleList()
         for i in range(num_layers):
-            self.enc_layers.append(TransformerEncoderLayer(embedding_dim, head_dim=embedding_dim, num_heads=num_heads))
+            self.enc_layers.append(TransformerEncoderLayer(d_model, num_heads=num_heads))
 
-        self.norm = nn.LayerNorm(embedding_dim)
+        self.norm = nn.LayerNorm(d_model)
 
     def forward(self, token_ids, mask=None):
         embeddings = self.word_embeddings(token_ids)
@@ -124,19 +124,19 @@ class TransformerEncoder(nn.Module):
 
 
 class TransformerDecoderLayer(nn.Module):
-    def __init__(self, embedding_dim, heads_dim, num_heads, ff_size=4, dropout=0.1):
+    def __init__(self, embedding_dim, num_heads, ff_size=2096, dropout=0.1):
         super(TransformerDecoderLayer, self).__init__()
-        self.self_attn = MultiheadedAttention(embeddings=embedding_dim, heads_dim=heads_dim, heads=num_heads)
+        self.self_attn = MultiheadedAttention(d_model=embedding_dim, heads=num_heads)
         self.attn_norm = nn.LayerNorm(embedding_dim)
 
-        self.encoder_decoder_attn = MultiheadedAttention(embeddings=embedding_dim, heads_dim=heads_dim, heads=num_heads)
+        self.encoder_decoder_attn = MultiheadedAttention(d_model=embedding_dim, heads=num_heads)
         self.encoder_decoder_attn_norm = nn.LayerNorm(embedding_dim)
 
         self.ff = nn.Sequential(
-            nn.Linear(embedding_dim, ff_size * embedding_dim),
+            nn.Linear(embedding_dim, ff_size),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(ff_size * embedding_dim, embedding_dim)
+            nn.Linear(ff_size, embedding_dim)
         )
 
         self.final_norm = nn.LayerNorm(embedding_dim)
@@ -167,7 +167,7 @@ class TransformerDecoder(nn.Module):
 
         self.enc_layers = nn.ModuleList()
         for i in range(num_layers):
-            self.enc_layers.append(TransformerDecoderLayer(embedding_dim, heads_dim=embedding_dim, num_heads=num_heads))
+            self.enc_layers.append(TransformerDecoderLayer(embedding_dim, num_heads=num_heads))
 
         self.norm = nn.LayerNorm(embedding_dim)
 
@@ -183,14 +183,18 @@ class TransformerDecoder(nn.Module):
 
 
 if __name__ == '__main__':
-    token_ids = torch.randint(low=0, high=511, size=(2, 32))
-    print(token_ids)
-    model_encoder = TransformerEncoder(vocab_size=512, embedding_dim=768, num_heads=8, num_layers=24)
-    model_decoder = TransformerDecoder(vocab_size=512, embedding_dim=768, num_heads=2, num_layers=2)
-    hidden_state_enc, output_enc = model_encoder(token_ids)
-    # print(len(hidden_state_enc))
-    # print(output_enc.shape)
+    src_vocab = 1000
+    trg_vocab = 2000
+    d_model = 512
+    src_token_ids = torch.randint(low=0, high=1000, size=(2, 32))
+    trg_token_ids = torch.randint(low=0, high=2000, size=(2, 80))
+    print(src_token_ids)
+    model_encoder = TransformerEncoder(vocab_size=src_vocab, d_model=d_model, num_heads=8, num_layers=24)
+    model_decoder = TransformerDecoder(vocab_size=trg_vocab, embedding_dim=d_model, num_heads=2, num_layers=2)
+    hidden_state_enc, output_enc = model_encoder(src_token_ids)
+    print(len(hidden_state_enc))
+    print(output_enc.shape)
 
-    hidden_state_dec, output_dec = model_decoder(token_ids, output_enc)
-    # print(len(hidden_state_dec))
-    # print(output_dec.shape)
+    hidden_state_dec, output_dec = model_decoder(trg_token_ids, output_enc)
+    print(len(hidden_state_dec))
+    print(output_dec.shape)
