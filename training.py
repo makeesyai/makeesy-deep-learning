@@ -57,8 +57,8 @@ if __name__ == '__main__':
 
     # src_file = '../data/wmt/WMT-News.de-en.de'
     # tgt_file = '../data/wmt/WMT-News.de-en.en'
-    src_file = '../data/copy/sources.txt'
-    tgt_file = '../data/copy/targets.txt'
+    src_file = 'data/copy/sources.txt'
+    tgt_file = 'data/copy/targets.txt'
     max_vocab = 100000
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     src_vcb = create_vocab(src_file, max_vocab)
