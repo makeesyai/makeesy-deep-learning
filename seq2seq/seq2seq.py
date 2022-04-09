@@ -1,3 +1,10 @@
+# EncoderLayer
+# 1. Self Attention
+# 2. Layer Normalization: What are Pre/Post-Norm?
+# 3. FF network with 2 hidden layers: FF + ACT + Dropout + FF
+# 4. Dropout Layer
+
+
 import torch
 from torch import nn
 
@@ -12,8 +19,8 @@ class TransformerLayer(nn.Module):
 
         self.ff = nn.Sequential(
             nn.Linear(embedding_dim, ff_size * embedding_dim),
-            nn.Dropout(dropout),
             nn.ReLU(),
+            nn.Dropout(dropout),
             nn.Linear(ff_size * embedding_dim, embedding_dim)
         )
 
