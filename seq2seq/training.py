@@ -91,10 +91,7 @@ if __name__ == '__main__':
                 tgt = tgt.to(device)
                 tgt_input = tgt[:, :-1]
                 tgt_out = tgt[:, 1:]
-                # print(tgt.shape)
-                # print(tgt_input.shape)
-                # print(tgt_out.shape)
-                # exit()
+
                 logits = model(src, tgt_input)
 
                 if steps > 0 and steps % PATIENCE == 0:
@@ -123,7 +120,6 @@ if __name__ == '__main__':
             ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
             for i in range(100):
                 hidden, out = model.decode(ys, memory)
-                print(out.shape)
                 prob = model.generator(out[:, -1])
                 _, next_word = torch.max(prob, dim=-1)
                 print(next_word)
