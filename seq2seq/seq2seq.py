@@ -214,17 +214,17 @@ class EncoderDecoder(nn.Module):
         # Generator
         self.generator = nn.Linear(d_model, trg_vocab)
 
-    def encode(self, x):
+    def encode(self, x, src_mask=None):
         embeddings = self.pe(self.src_embeddings(x))
-        return self.encoder(embeddings)
+        return self.encoder(embeddings, src_mask)
 
-    def decode(self, y, memory):
+    def decode(self, y, memory, src_mask=None, trg_mask=None):
         tensor_y = self.pe(self.tgt_embeddings(y))
-        return self.decoder(tensor_y, memory)
+        return self.decoder(tensor_y, memory, src_mask, trg_mask)
 
-    def forward(self, x, y):
-        hidden_states, memory = self.encode(x)
-        hidden_states, tensor = self.decode(y, memory)
+    def forward(self, x, y, src_mask=None, trg_make=None):
+        hidden_states, memory = self.encode(x, src_mask)
+        hidden_states, tensor = self.decode(y, memory, src_mask, trg_make)
         logits = self.generator(tensor)
         return logits
 
