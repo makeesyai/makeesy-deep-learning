@@ -4,7 +4,7 @@ from torch.nn.utils.rnn import pad_sequence
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 
-from seq2seq import EncoderDecoder
+from seq2seq.seq2seq_model import EncoderDecoder
 
 
 if __name__ == '__main__':
