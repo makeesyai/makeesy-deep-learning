@@ -23,12 +23,15 @@ if __name__ == '__main__':
         return word2idx
 
 
-    def load_data(file_src, file_tgt, vcb_src, vcb_tgt):
+    def load_data(file_src, file_tgt, vcb_src, vcb_tgt, max_samples=100):
         dada = []
+        counter = 0
         with open(file_src, encoding='utf8') as fin_src, \
                 open(file_tgt, encoding='utf8') as fin_tgt:
             for line_src, line_tgt in zip(fin_src, fin_tgt):
-
+                counter += 1
+                if counter >= max_samples:
+                    break
                 sample_src = ['<s>'] + line_src.split() + ['</s>']
                 sample_tgt = ['<s>'] + line_tgt.split() + ['</s>']
 
@@ -114,10 +117,10 @@ if __name__ == '__main__':
             src = src.to(device)
             tgt = tgt.to(device)
 
-            memory = model.encode(src)
+            hidden, memory = model.encode(src)
             ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
             for i in range(100):
-                out = model.decode(ys, memory)
+                hidden, out = model.decode(ys, memory)
                 out = out.transpose(0, 1)
                 prob = model.generator(out[:, -1])
                 _, next_word = torch.max(prob, dim=-1)
