@@ -77,10 +77,10 @@ class MultiheadedAttention(nn.Module):
         # attn_scores = attn_scores/(self.heads_dim ** 1/float(2))
 
         # Apply masking
-        print(attn_scores)
+        # print(attn_scores)
         if mask is not None:
             attn_scores = attn_scores.masked_fill(mask == 1, value=-1e9)
-        print(attn_scores)
+        # print(attn_scores)
 
         # Convert attention scores into probability distributions
         softmax_attn_scores = softmax(attn_scores, dim=-1)
