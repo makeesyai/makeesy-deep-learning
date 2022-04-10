@@ -37,7 +37,7 @@ class TransformerEncoderLayer(nn.Module):
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, d_model, num_heads=2, num_layers=2, max_seq=512):
+    def __init__(self, d_model, num_heads=2, num_layers=2):
         super(TransformerEncoder, self).__init__()
 
         self.enc_layers = nn.ModuleList()
