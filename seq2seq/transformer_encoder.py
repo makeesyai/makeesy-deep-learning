@@ -59,6 +59,7 @@ class TransformerEncoder(nn.Module):
 if __name__ == '__main__':
     dim_model = 512
     src_embeddings = torch.rand(2, 32, dim_model)
-    model_encoder = TransformerEncoder(d_model=dim_model, num_heads=8, num_layers=24)
+    model_encoder = TransformerEncoder(d_model=dim_model, num_heads=8, num_layers=6)
     hidden, output = model_encoder(src_embeddings)
+    print(len(hidden))
     print(output.shape)
