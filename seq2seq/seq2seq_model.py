@@ -77,8 +77,10 @@ class MultiheadedAttention(nn.Module):
         # attn_scores = attn_scores/(self.heads_dim ** 1/float(2))
 
         # Apply masking
+        print(attn_scores)
         if mask is not None:
             attn_scores = attn_scores.masked_fill(mask == 1, value=-1e9)
+        print(attn_scores)
 
         # Convert attention scores into probability distributions
         softmax_attn_scores = softmax(attn_scores, dim=-1)
@@ -161,14 +163,14 @@ class TransformerDecoderLayer(nn.Module):
 
     def forward(self, embeddings, memory, src_mask=None, trg_mask=None):
         # Pre-Normalization
-        embeddings = embeddings + self.do(self.self_attn(self.attn_norm(embeddings), mask=src_mask))
+        embeddings = embeddings + self.do(self.self_attn(self.attn_norm(embeddings), mask=trg_mask))
 
         # print(embeddings.shape)
         # print(memory.shape)
 
         # Pre-Normalization
         embeddings = embeddings + self.do(
-            self.encoder_decoder_attn(self.encoder_decoder_attn_norm(embeddings), mask=trg_mask, kv=memory))
+            self.encoder_decoder_attn(self.encoder_decoder_attn_norm(embeddings), mask=src_mask, kv=memory))
 
         # Pre-Normalization
         embeddings = embeddings + self.do(self.ff(self.final_norm(embeddings)))

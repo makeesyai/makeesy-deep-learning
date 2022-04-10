@@ -55,6 +55,22 @@ if __name__ == '__main__':
         return src_batch, tgt_batch
 
 
+    def create_masks(src, trg):
+        bs, seq_len = trg.shape
+        # this will be the same of all samples in a batch and will broadcast
+        # when we take an OR operation with trg mask
+        mask_shape = (1, seq_len, seq_len)
+        ones_tensor = torch.ones(mask_shape)
+        triu_tesnor = torch.triu(ones_tensor, diagonal=1).type(torch.int16)
+        trg_mask = (trg == PAD_IDX).type(torch.int16).unsqueeze(-2)
+        subsequent_mask = triu_tesnor | trg_mask  # broadcasting to bs x seq_len x seq_len
+        subsequent_mask = subsequent_mask.unsqueeze(1)
+
+        src_mask = (src == PAD_IDX).type(torch.int16).unsqueeze(-2).unsqueeze(-2)
+
+        return src_mask, subsequent_mask
+
+
     # src_file = '../data/wmt/WMT-News.de-en.de'
     # tgt_file = '../data/wmt/WMT-News.de-en.en'
     src_file = 'data/copy/sources.txt'
@@ -63,10 +79,10 @@ if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     src_vcb = create_vocab(src_file, max_vocab)
     trg_vcb = create_vocab(tgt_file, max_vocab)
-    PAD_IDX = src_vcb.get('<pad>')
-    BOS_IDX = src_vcb.get('<s>')
-    EOS_IDX = src_vcb.get('</s>')
-    BATCH_SIZE = 16
+    PAD_IDX = src_vcb.get('<pad>')  # Same for trg vocab
+    BOS_IDX = src_vcb.get('<s>')  # same for trgvocab
+    EOS_IDX = src_vcb.get('</s>')  # same for trg vocab
+    BATCH_SIZE = 2
     EPOCHS = 10
     PATIENCE = 100
 
@@ -86,13 +102,15 @@ if __name__ == '__main__':
         steps = 0
         total_loss = 0
         for epoch in range(EPOCHS):
-            for idx, (src, tgt) in enumerate(train_iter):
+            for idx, (src, trg) in enumerate(train_iter):
                 src = src.to(device)
-                tgt = tgt.to(device)
-                tgt_input = tgt[:, :-1]
-                tgt_out = tgt[:, 1:]
+                trg = trg.to(device)
+                trg_input = trg[:, :-1]
+                trg_out = trg[:, 1:]
 
-                logits = model(src, tgt_input)
+                src_mask, trg_mask = create_masks(src, trg_input)
+
+                logits = model(src, trg_input, src_mask, trg_mask)
 
                 if steps > 0 and steps % PATIENCE == 0:
                     print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
@@ -102,7 +120,7 @@ if __name__ == '__main__':
 
                 steps += 1
                 optimizer.zero_grad()
-                loss = criterion(logits.reshape(-1, logits.shape[-1]), tgt_out.reshape(-1))
+                loss = criterion(logits.reshape(-1, logits.shape[-1]), trg_out.reshape(-1))
                 loss.backward()
                 optimizer.step()
                 total_loss += loss.item()
@@ -112,9 +130,9 @@ if __name__ == '__main__':
     count = 0
     with torch.no_grad():
         model.eval()
-        for idx, (src, tgt) in enumerate(train_iter):
+        for idx, (src, trg) in enumerate(train_iter):
             src = src.to(device)
-            tgt = tgt.to(device)
+            trg = trg.to(device)
 
             hidden, memory = model.encode(src)
             ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
@@ -128,7 +146,7 @@ if __name__ == '__main__':
                 if next_word == EOS_IDX:
                     break
             print(ys)
-            print(tgt)
+            print(trg)
             count += 1
             if count == 10:
                 exit()
