@@ -6,7 +6,6 @@ from torch.utils.data import DataLoader
 
 from seq2seq.seq2seq_model import EncoderDecoder
 
-
 if __name__ == '__main__':
     def create_vocab(file_path, max_vocab):
         word2idx = {'<pad>': 0, '<unk>': 1, '<s>': 2, '</s>': 3}
@@ -73,18 +72,18 @@ if __name__ == '__main__':
 
     src_file = 'data/wmt/WMT-News.de-en.de'
     tgt_file = 'data/wmt/WMT-News.de-en.en'
-    #src_file = 'data/copy/sources.txt'
-    #tgt_file = 'data/copy/targets.txt'
+    # src_file = 'data/copy/sources.txt'
+    # tgt_file = 'data/copy/targets.txt'
     max_vocab = 100000
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     src_vcb = create_vocab(src_file, max_vocab)
     trg_vcb = create_vocab(tgt_file, max_vocab)
-    idx2word_src = {src_vcb[key]:key for key in src_vcb}
-    idx2word_trg = {trg_vcb[key]:key for key in trg_vcb}
+    idx2word_src = {src_vcb[key]: key for key in src_vcb}
+    idx2word_trg = {trg_vcb[key]: key for key in trg_vcb}
     PAD_IDX = src_vcb.get('<pad>')  # Same for trg vocab
     BOS_IDX = src_vcb.get('<s>')  # same for trgvocab
     EOS_IDX = src_vcb.get('</s>')  # same for trg vocab
-    BATCH_SIZE = 32
+    BATCH_SIZE = 8
     EPOCHS = 10
     PATIENCE = 100
 
@@ -93,7 +92,7 @@ if __name__ == '__main__':
     train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                             shuffle=True, collate_fn=generate_batch)
 
-    model = EncoderDecoder(len(src_vcb), len(trg_vcb))
+    model = EncoderDecoder(len(src_vcb), len(trg_vcb), num_dec_layers=2, num_enc_layers=2, n_heads=2)
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -115,7 +114,7 @@ if __name__ == '__main__':
                 logits = model(src, trg_input, src_mask, trg_mask)
 
                 if steps > 0 and steps % PATIENCE == 0:
-                    print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss/PATIENCE}')
+                    print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss / PATIENCE}')
                     total_loss = 0
                     # print(logits.argmax(-1).view(-1).tolist())
                     # print(tgt_out.transpose(0, 1))
