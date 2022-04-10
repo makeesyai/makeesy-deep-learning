@@ -6,6 +6,8 @@ class MultiheadedAttention(nn.Module):
         super(MultiheadedAttention, self).__init__()
 
         self.heads = heads
+
+        # The model dimension split into n-heads
         self.heads_dim = int(d_model / heads)
 
         # In final implementation, we must use bias=True
