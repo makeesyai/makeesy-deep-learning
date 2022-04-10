@@ -71,14 +71,16 @@ if __name__ == '__main__':
         return src_mask.to(device), subsequent_mask.to(device)
 
 
-    # src_file = '../data/wmt/WMT-News.de-en.de'
-    # tgt_file = '../data/wmt/WMT-News.de-en.en'
-    src_file = 'data/copy/sources.txt'
-    tgt_file = 'data/copy/targets.txt'
+    src_file = 'data/wmt/WMT-News.de-en.de'
+    tgt_file = 'data/wmt/WMT-News.de-en.en'
+    #src_file = 'data/copy/sources.txt'
+    #tgt_file = 'data/copy/targets.txt'
     max_vocab = 100000
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     src_vcb = create_vocab(src_file, max_vocab)
     trg_vcb = create_vocab(tgt_file, max_vocab)
+    idx2word_src = {src_vcb[key]:key for key in src_vcb}
+    idx2word_trg = {trg_vcb[key]:key for key in trg_vcb}
     PAD_IDX = src_vcb.get('<pad>')  # Same for trg vocab
     BOS_IDX = src_vcb.get('<s>')  # same for trgvocab
     EOS_IDX = src_vcb.get('</s>')  # same for trg vocab
@@ -145,8 +147,8 @@ if __name__ == '__main__':
                                 torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=1)
                 if next_word == EOS_IDX:
                     break
-            print(ys)
-            print(trg)
+            print(" ".join([idx2word_trg.get(idx.item()) for idx in ys[0]]))
+            print(" ".join([idx2word_trg.get(idx.item()) for idx in trg[0]]))
             count += 1
             if count == 10:
                 exit()
