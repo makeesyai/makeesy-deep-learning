@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
         src_mask = (src == PAD_IDX).type(torch.int16).unsqueeze(-2).unsqueeze(-2)
 
-        return src_mask, subsequent_mask
+        return src_mask.to(device), subsequent_mask.to(device)
 
 
     # src_file = '../data/wmt/WMT-News.de-en.de'
