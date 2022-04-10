@@ -82,7 +82,7 @@ if __name__ == '__main__':
     PAD_IDX = src_vcb.get('<pad>')  # Same for trg vocab
     BOS_IDX = src_vcb.get('<s>')  # same for trgvocab
     EOS_IDX = src_vcb.get('</s>')  # same for trg vocab
-    BATCH_SIZE = 2
+    BATCH_SIZE = 32
     EPOCHS = 10
     PATIENCE = 100
 
