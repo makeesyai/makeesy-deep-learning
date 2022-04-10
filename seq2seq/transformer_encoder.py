@@ -3,6 +3,7 @@
 # 2. Layer Normalization: What are Pre/Post-Norm?
 # 3. FF network with 2 hidden layers: FF(UP-Proj) + ACT + Dropout + FF(Down-Proj)
 # 4. Dropout Layer
+
 import torch
 from torch import nn
 
@@ -56,8 +57,8 @@ class TransformerEncoder(nn.Module):
 
 
 if __name__ == '__main__':
-    d_model = 512
-    src_embeddings = torch.rand(2, 32, d_model)
-    model_encoder = TransformerEncoder(d_model=d_model, num_heads=8, num_layers=24)
+    dim_model = 512
+    src_embeddings = torch.rand(2, 32, dim_model)
+    model_encoder = TransformerEncoder(d_model=dim_model, num_heads=8, num_layers=24)
     hidden, output = model_encoder(src_embeddings)
     print(output.shape)
