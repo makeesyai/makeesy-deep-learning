@@ -28,9 +28,9 @@ class TransformerEncoderLayer(nn.Module):
         self.do = nn.Dropout(dropout)
 
     def forward(self, embeddings, mask=None):
-        # Pre-Normalization
+        # Attn with Pre-Normalization
         embeddings = embeddings + self.do(self.self_attn(self.attn_norm(embeddings), mask=mask))
-        # Pre-Normalization
+        # FeedForward with Pre-Normalization
         embeddings = embeddings + self.do(self.ff(self.final_norm(embeddings)))
 
         return embeddings
