@@ -9,6 +9,16 @@ import torch
 from torch import nn, matmul, softmax, Tensor
 
 
+class TokenEmbedding(nn.Module):
+    def __init__(self, vocab_size: int, emb_size):
+        super(TokenEmbedding, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, emb_size)
+        self.emb_size = emb_size
+
+    def forward(self, tokens: Tensor):
+        return self.embedding(tokens.long()) * math.sqrt(self.emb_size)
+
+
 class PositionalEncoding(nn.Module):
     def __init__(self, emb_size: int, dropout, maxlen: int = 5000):
         super(PositionalEncoding, self).__init__()
@@ -201,8 +211,8 @@ class EncoderDecoder(nn.Module):
     def __init__(self, src_vocab, trg_vocab, d_model=128, n_heads=2, num_enc_layers=6, num_dec_layers=6, ff_dim=512):
         super(EncoderDecoder, self).__init__()
 
-        self.src_embeddings = nn.Embedding(src_vocab, d_model)
-        self.tgt_embeddings = nn.Embedding(trg_vocab, d_model)
+        self.src_embeddings = TokenEmbedding(src_vocab, d_model)
+        self.tgt_embeddings = TokenEmbedding(trg_vocab, d_model)
         self.pe = PositionalEncoding(d_model, dropout=0.01)
 
         # Encoder model
