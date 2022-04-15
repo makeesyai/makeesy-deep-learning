@@ -3,6 +3,9 @@ import math
 import torch
 from torch import nn, matmul, softmax, Tensor
 
+from seq2seq.transformer_decoder import TransformerDecoder
+from seq2seq.transformer_encoder import TransformerEncoder
+
 
 class TokenEmbedding(nn.Module):
     def __init__(self, vocab_size: int, emb_size):
@@ -126,9 +129,9 @@ class TransformerEncoderLayer(nn.Module):
         return embeddings
 
 
-class TransformerEncoder(nn.Module):
+class TransformerEncoderLocal(nn.Module):
     def __init__(self, d_model, num_heads=2, num_layers=2, max_seq=512):
-        super(TransformerEncoder, self).__init__()
+        super(TransformerEncoderLocal, self).__init__()
 
         self.enc_layers = nn.ModuleList()
         for i in range(num_layers):
@@ -183,9 +186,9 @@ class TransformerDecoderLayer(nn.Module):
         return embeddings
 
 
-class TransformerDecoder(nn.Module):
+class TransformerDecoderLocal(nn.Module):
     def __init__(self, embedding_dim, num_heads=2, num_layers=2):
-        super(TransformerDecoder, self).__init__()
+        super(TransformerDecoderLocal, self).__init__()
 
         self.enc_layers = nn.ModuleList()
         for i in range(num_layers):
@@ -215,7 +218,7 @@ class EncoderDecoder(nn.Module):
                                           num_layers=num_enc_layers)
 
         # Decoder model
-        self.decoder = TransformerDecoder(embedding_dim=d_model, num_heads=n_heads,
+        self.decoder = TransformerDecoder(d_model=d_model, num_heads=n_heads,
                                           num_layers=num_dec_layers)
 
         # Generator
@@ -244,7 +247,7 @@ if __name__ == '__main__':
     trg_token_ids = torch.randint(low=0, high=2000, size=(2, 80))
     print(src_token_ids)
     model_encoder = TransformerEncoder(d_model=d_model, num_heads=8, num_layers=24)
-    model_decoder = TransformerDecoder(embedding_dim=d_model, num_heads=2, num_layers=2)
+    model_decoder = TransformerDecoder(d_model=d_model, num_heads=2, num_layers=2)
     hidden_state_enc, output_enc = model_encoder(src_token_ids)
     print(len(hidden_state_enc))
     print(output_enc.shape)
