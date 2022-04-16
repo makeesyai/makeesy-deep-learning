@@ -150,22 +150,22 @@ class TransformerEncoderLocal(nn.Module):
 
 
 class TransformerDecoderLayer(nn.Module):
-    def __init__(self, embedding_dim, num_heads, ff_size=2096, dropout=0.1):
+    def __init__(self, d_model, num_heads, ff_size=2096, dropout=0.1):
         super(TransformerDecoderLayer, self).__init__()
-        self.self_attn = MultiheadedAttention(d_model=embedding_dim, heads=num_heads)
-        self.attn_norm = nn.LayerNorm(embedding_dim)
+        self.self_attn = MultiheadedAttention(d_model=d_model, heads=num_heads)
+        self.attn_norm = nn.LayerNorm(d_model)
 
-        self.encoder_decoder_attn = MultiheadedAttention(d_model=embedding_dim, heads=num_heads)
-        self.encoder_decoder_attn_norm = nn.LayerNorm(embedding_dim)
+        self.encoder_decoder_attn = MultiheadedAttention(d_model=d_model, heads=num_heads)
+        self.encoder_decoder_attn_norm = nn.LayerNorm(d_model)
 
         self.ff = nn.Sequential(
-            nn.Linear(embedding_dim, ff_size),
+            nn.Linear(d_model, ff_size),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(ff_size, embedding_dim)
+            nn.Linear(ff_size, d_model)
         )
 
-        self.final_norm = nn.LayerNorm(embedding_dim)
+        self.final_norm = nn.LayerNorm(d_model)
 
         self.do = nn.Dropout(dropout)
 
@@ -187,14 +187,14 @@ class TransformerDecoderLayer(nn.Module):
 
 
 class TransformerDecoderLocal(nn.Module):
-    def __init__(self, embedding_dim, num_heads=2, num_layers=2):
+    def __init__(self, d_model, num_heads=2, num_layers=2):
         super(TransformerDecoderLocal, self).__init__()
 
         self.enc_layers = nn.ModuleList()
         for i in range(num_layers):
-            self.enc_layers.append(TransformerDecoderLayer(embedding_dim, num_heads=num_heads))
+            self.enc_layers.append(TransformerDecoderLayer(d_model, num_heads=num_heads))
 
-        self.norm = nn.LayerNorm(embedding_dim)
+        self.norm = nn.LayerNorm(d_model)
 
     def forward(self, embeddings, memory, src_mask=None, trg_mask=None):
         hidden_states = []
