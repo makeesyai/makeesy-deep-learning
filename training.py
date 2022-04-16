@@ -92,7 +92,7 @@ if __name__ == '__main__':
     train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                             shuffle=True, collate_fn=generate_batch)
 
-    model = EncoderDecoder(len(src_vcb), len(trg_vcb), num_dec_layers=2, num_enc_layers=2, n_heads=2)
+    model = EncoderDecoder(len(src_vcb), len(trg_vcb), d_model=512, num_dec_layers=6, num_enc_layers=6, n_heads=8)
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
