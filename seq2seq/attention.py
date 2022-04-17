@@ -26,14 +26,21 @@ class MultiheadedAttention(nn.Module):
         self.unify_heads = nn.Linear(heads * self.heads_dim, d_model, bias=False)
         # self.unify_heads.weight = nn.Parameter(w_unify_heads.t())  # This should be commented in final implementation
 
-    def forward(self, inputs, mask=None):
+    def forward(self, inputs, mask=None, kv=None):
         # Create Q, K, and V using input vectors
         bs, seq, emb_dim = inputs.shape
 
+        if kv is not None:
+            kv = kv
+        else:
+            kv = inputs
+
+        kv_bs, kv_seq_len, _ = kv.size()
+
         # Transpose: bs x seq-length x num-heads x heads_dim -> bs x num-heads x seq-length x heads_dim
         q = self.to_query(inputs).view(bs, seq, self.heads, self.heads_dim).transpose(1, 2)
-        k = self.to_key(inputs).view(bs, seq, self.heads, self.heads_dim).transpose(1, 2)
-        v = self.to_value(inputs).view(bs, seq, self.heads, self.heads_dim).transpose(1, 2)
+        k = self.to_key(kv).view(kv_bs, kv_seq_len, self.heads, self.heads_dim).transpose(1, 2)
+        v = self.to_value(kv).view(kv_bs, kv_seq_len, self.heads, self.heads_dim).transpose(1, 2)
 
         # Scale before Dot-product: q/root_forth(head_dim) and k/root_forth(head_dim)
         q = q / (self.heads_dim ** 1 / float(4))
