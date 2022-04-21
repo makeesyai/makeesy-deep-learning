@@ -5,6 +5,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 from seq2seq.seq2seq_model import EncoderDecoder
+from seq2seq.transformer_encoder_decoder import TransformerEncoderDecoder
 
 if __name__ == '__main__':
     def create_vocab(file_path, max_vocab):
@@ -92,7 +93,10 @@ if __name__ == '__main__':
     train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                             shuffle=True, collate_fn=generate_batch)
 
-    model = EncoderDecoder(len(src_vcb), len(trg_vcb), d_model=512, num_dec_layers=6, num_enc_layers=6, n_heads=8)
+    # model = EncoderDecoder(len(src_vcb), len(trg_vcb), d_model=512, num_dec_layers=6, num_enc_layers=6, n_heads=8)
+    model = TransformerEncoderDecoder(len(src_vcb), len(trg_vcb), d_model=512, num_dec_layers=6, num_enc_layers=6,
+                                      num_heads=8, dropout=0.1)
+
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
