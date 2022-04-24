@@ -19,7 +19,7 @@ class Generator(nn.Module):
 
     def forward(self, trg_embeddings):
         logits = self.ff(trg_embeddings)
-        return F.log_softmax(logits), logits
+        return F.log_softmax(logits, dim=-1), logits
 
 
 class TransformerEncoderDecoder(nn.Module):
@@ -63,5 +63,6 @@ if __name__ == '__main__':
     model = TransformerEncoderDecoder(src_vocab, trg_vocab, d_model, num_enc_layers=2,
                                       num_dec_layers=2, num_heads=4, dropout=0.1)
 
-    logits = model(src_token_ids, trg_token_ids)
+    prob, logits = model(src_token_ids, trg_token_ids)
     print(logits.shape)
+    print(prob.shape)
