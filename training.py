@@ -115,7 +115,7 @@ if __name__ == '__main__':
 
                 src_mask, trg_mask = create_masks(src, trg_input)
 
-                logits = model(src, trg_input, src_mask, trg_mask)
+                _, logits = model(src, trg_input, src_mask, trg_mask)
 
                 if steps > 0 and steps % PATIENCE == 0:
                     print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss / PATIENCE}')
@@ -143,7 +143,7 @@ if __name__ == '__main__':
             ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
             for i in range(100):
                 hidden, out = model.decode(ys, memory)
-                prob = model.generator(out[:, -1])
+                prob, _ = model.generator(out[:, -1])
                 _, next_word = torch.max(prob, dim=-1)
                 next_word = next_word.item()
                 ys = torch.cat([ys,

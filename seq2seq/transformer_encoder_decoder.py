@@ -1,5 +1,11 @@
+# TransformerEncoderDecoer class
+# 1. Create Word Embeddings and Position Embedding given the token ids for both Source and Target
+# 2. Create separate encode and decoder methods (needed during inference)
+# 3. Create generator based on target vocab
+
 import torch
 from torch import nn
+from torch.nn import functional as F
 
 from seq2seq.seq2seq_model import TokenEmbedding, PositionalEncoding
 from seq2seq.transformer_decoder import TransformerDecoder
@@ -9,10 +15,11 @@ from seq2seq.transformer_encoder import TransformerEncoder
 class Generator(nn.Module):
     def __init__(self, d_model, trg_vocab):
         super(Generator, self).__init__()
-        self.generator = nn.Linear(d_model, trg_vocab)
+        self.ff = nn.Linear(d_model, trg_vocab)
 
     def forward(self, trg_embeddings):
-        return self.generator(trg_embeddings)
+        logits = self.ff(trg_embeddings)
+        return F.log_softmax(logits), logits
 
 
 class TransformerEncoderDecoder(nn.Module):
