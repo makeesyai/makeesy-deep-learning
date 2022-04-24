@@ -12,6 +12,7 @@ class TokenEmbedding(nn.Module):
 
     def forward(self, tokens: Tensor):
         return self.embedding(tokens.long()) * math.sqrt(self.emb_size)
+        # scaling factor to make word embeddings more dominant
 
 
 class PositionalEncoding(nn.Module):
