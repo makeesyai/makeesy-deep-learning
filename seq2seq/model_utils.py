@@ -30,4 +30,3 @@ class PositionalEncoding(nn.Module):
     def forward(self, token_embedding: Tensor):
         return self.dropout(token_embedding +
                             self.pos_embedding[:token_embedding.size(0), :])
-
