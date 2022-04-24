@@ -5,6 +5,7 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 
 from seq2seq.seq2seq_model import EncoderDecoder
+from seq2seq.transformer_encoder_decoder import TransformerEncoderDecoder
 
 if __name__ == '__main__':
     def create_vocab(file_path, max_vocab):
@@ -92,7 +93,10 @@ if __name__ == '__main__':
     train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                             shuffle=True, collate_fn=generate_batch)
 
-    model = EncoderDecoder(len(src_vcb), len(trg_vcb), d_model=512, num_dec_layers=6, num_enc_layers=6, n_heads=8)
+    # model = EncoderDecoder(len(src_vcb), len(trg_vcb), d_model=512, num_dec_layers=6, num_enc_layers=6, n_heads=8)
+    model = TransformerEncoderDecoder(len(src_vcb), len(trg_vcb), d_model=512, num_dec_layers=6, num_enc_layers=6,
+                                      num_heads=8, dropout=0.1)
+
     model.to(device)
 
     criterion = nn.CrossEntropyLoss()
@@ -111,7 +115,7 @@ if __name__ == '__main__':
 
                 src_mask, trg_mask = create_masks(src, trg_input)
 
-                logits = model(src, trg_input, src_mask, trg_mask)
+                _, logits = model(src, trg_input, src_mask, trg_mask)
 
                 if steps > 0 and steps % PATIENCE == 0:
                     print(f'Epoch:{epoch}, Steps: {steps}, Loss:{total_loss / PATIENCE}')
@@ -139,7 +143,7 @@ if __name__ == '__main__':
             ys = torch.ones(1, 1).type_as(src.data).fill_(BOS_IDX)
             for i in range(100):
                 hidden, out = model.decode(ys, memory)
-                prob = model.generator(out[:, -1])
+                prob, _ = model.generator(out[:, -1])
                 _, next_word = torch.max(prob, dim=-1)
                 next_word = next_word.item()
                 ys = torch.cat([ys,
