@@ -85,7 +85,7 @@ if __name__ == '__main__':
     BATCH_SIZE = 8
     EPOCHS = 10
     PATIENCE = 100
-    MAX_SAMPLES = 30000
+    MAX_SAMPLES = 2000
 
     train_data = load_data(src_file, tgt_file, src_vcb, trg_vcb, max_samples=MAX_SAMPLES)
 
@@ -94,8 +94,9 @@ if __name__ == '__main__':
 
     # model = EncoderDecoder(len(src_vcb), len(trg_vcb), d_model=512, num_dec_layers=6, num_enc_layers=6, n_heads=8)
     model = TransformerEncoderDecoder(len(src_vcb), len(trg_vcb), d_model=128,
-                                      num_dec_layers=2, num_enc_layers=2,
-                                      num_heads=4, dropout=0.1)
+                                      num_enc_layers=4,
+                                      num_dec_layers=3,
+                                      num_heads=8, dropout=0.1)
 
     model.to(device)
 
