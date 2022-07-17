@@ -82,10 +82,10 @@ if __name__ == '__main__':
     PAD_IDX = src_vcb.get('<pad>')  # Same for trg vocab
     BOS_IDX = src_vcb.get('<s>')  # same for trgvocab
     EOS_IDX = src_vcb.get('</s>')  # same for trg vocab
-    BATCH_SIZE = 4
+    BATCH_SIZE = 8
     EPOCHS = 10
     PATIENCE = 100
-    MAX_SAMPLES = 1000
+    MAX_SAMPLES = 30000
 
     train_data = load_data(src_file, tgt_file, src_vcb, trg_vcb, max_samples=MAX_SAMPLES)
 
@@ -93,8 +93,9 @@ if __name__ == '__main__':
                             shuffle=True, collate_fn=generate_batch)
 
     # model = EncoderDecoder(len(src_vcb), len(trg_vcb), d_model=512, num_dec_layers=6, num_enc_layers=6, n_heads=8)
-    model = TransformerEncoderDecoder(len(src_vcb), len(trg_vcb), d_model=128, num_dec_layers=1, num_enc_layers=1,
-                                      num_heads=2, dropout=0.1)
+    model = TransformerEncoderDecoder(len(src_vcb), len(trg_vcb), d_model=128,
+                                      num_dec_layers=2, num_enc_layers=2,
+                                      num_heads=4, dropout=0.1)
 
     model.to(device)
 
@@ -149,8 +150,8 @@ if __name__ == '__main__':
                                 torch.ones(1, 1).type_as(src.data).fill_(next_word)], dim=1)
                 if next_word == EOS_IDX:
                     break
-            print(" ".join([idx2word_trg.get(idx.item()) for idx in ys[0]]))
-            print(" ".join([idx2word_trg.get(idx.item()) for idx in trg[0]]))
+            print(f'Translation:{0}', " ".join([idx2word_trg.get(idx.item()) for idx in ys[0]]))
+            print(f'Reference:{0}', " ".join([idx2word_trg.get(idx.item()) for idx in trg[0]]))
             count += 1
             if count == 10:
                 exit()
