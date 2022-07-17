@@ -3,8 +3,6 @@ from torch import nn
 from torch.nn.utils.rnn import pad_sequence
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-
-from seq2seq.seq2seq_model import EncoderDecoder
 from seq2seq.transformer_encoder_decoder import TransformerEncoderDecoder
 
 if __name__ == '__main__':
@@ -84,11 +82,12 @@ if __name__ == '__main__':
     PAD_IDX = src_vcb.get('<pad>')  # Same for trg vocab
     BOS_IDX = src_vcb.get('<s>')  # same for trgvocab
     EOS_IDX = src_vcb.get('</s>')  # same for trg vocab
-    BATCH_SIZE = 64
+    BATCH_SIZE = 8
     EPOCHS = 10
     PATIENCE = 100
+    MAX_SAMPLES = 1000
 
-    train_data = load_data(src_file, tgt_file, src_vcb, trg_vcb)
+    train_data = load_data(src_file, tgt_file, src_vcb, trg_vcb, max_samples=MAX_SAMPLES)
 
     train_iter = DataLoader(train_data, batch_size=BATCH_SIZE,
                             shuffle=True, collate_fn=generate_batch)
@@ -110,8 +109,8 @@ if __name__ == '__main__':
             for idx, (src, trg) in enumerate(train_iter):
                 src = src.to(device)
                 trg = trg.to(device)
-                trg_input = trg[:, :-1]
-                trg_out = trg[:, 1:]
+                trg_input = trg[:, :-1]  # exclude the last token
+                trg_out = trg[:, 1:]  # exclude the first token
 
                 src_mask, trg_mask = create_masks(src, trg_input)
 
